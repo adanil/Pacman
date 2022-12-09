@@ -3,7 +3,6 @@ package level
 import (
 	"log"
 	"math/rand"
-	"pacman/internal/player"
 	"time"
 )
 
@@ -16,11 +15,12 @@ const (
 
 type Level struct {
 	LevelTiles [][]int
-	player     player.Player
+	TileWidth  int
+	TileHeight int
 }
 
 func GenerateRandomLevel(widthTiles, heightTiles int) Level {
-	level := Level{LevelTiles: make([][]int, widthTiles)}
+	level := Level{LevelTiles: make([][]int, widthTiles), TileWidth: widthTiles, TileHeight: heightTiles}
 	for x := 0; x < widthTiles; x++ {
 		level.LevelTiles[x] = make([]int, heightTiles)
 	}
@@ -34,16 +34,5 @@ func GenerateRandomLevel(widthTiles, heightTiles int) Level {
 			level.LevelTiles[x][y] = Wall
 		}
 	}
-
-	for {
-		x := rand.Intn(widthTiles)
-		y := rand.Intn(heightTiles)
-		if level.LevelTiles[x][y] == Free {
-			level.LevelTiles[x][y] = Player
-			level.player.CreatePlayer(x, y)
-			break
-		}
-	}
 	return level
-
 }
