@@ -1,22 +1,37 @@
 package main
 
 import (
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
 	"log"
+	"math/rand"
 	"os"
-	"pacman/internal/gameController"
+	"pacman/internal/controllers"
+	"pacman/internal/entities"
 	"pacman/internal/level"
-	"pacman/internal/player"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/nfnt/resize"
 )
 
+/* TODO
+* 	Check collision between enemies and pacman
+*	Implement pathfinder algorithm for enemies
+*   Add menu
+*   Display the score
+*	Add boosters
+*	Create a beautiful map
+*	Change a wall texture
+* 	Refactor code
+*	Check code by linter
+*	Optional: create AI generator for map
+*	Optional: create AI controller for enemies
+ */
+
 const (
-	tileSize         = 30
+	frameModulo      = 150
+	tileSize         = 15
 	gameScreenWidth  = 640
 	gameScreenHeight = 480
 	widthTiles       = gameScreenWidth / tileSize
@@ -24,86 +39,131 @@ const (
 )
 
 var (
-	wallImage             *ebiten.Image
-	pacmanImage           *ebiten.Image
-	gameLevel             level.Level
-	pacman                player.Player
-	controller            gameController.GameController
-	pressedRotationButton int
+	frameNumber        int
+	gameLevel          level.Level
+	keyboardController controllers.KeyboardHandler
+	enemyController    controllers.EnemyController
+	wallImage          *ebiten.Image //TODO delete this variable later
+	foodImage          *ebiten.Image //TODO probably this too
 )
 
-func Init() {
-	readerWall, err := os.Open("images/wall.jpg")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer readerWall.Close()
-	readerPacman, err := os.Open("images/pacman.png")
-	if err != nil {
-		log.Fatal(err)
-	}
+func init() {
+	lvGenerator := level.Generator{Creator: &level.RandomLevelGenerator{}}
+	gameLevel = lvGenerator.CreateLevel(widthTiles, heightTiles, tileSize, 0)
 
-	imgWall, _, err := image.Decode(readerWall)
-	if err != nil {
-		log.Fatal(err)
-	}
-	imgPacman, _, err := image.Decode(readerPacman)
-	if err != nil {
-		log.Fatal(err)
-	}
+	readerWall, _ := os.Open("images/wall.jpg")
+	imgWall, _, _ := image.Decode(readerWall)
 	resizedWallImage := resize.Resize(tileSize, tileSize, imgWall, resize.NearestNeighbor)
 	wallImage = ebiten.NewImageFromImage(resizedWallImage)
 
-	resizedPacmanImage := resize.Resize(tileSize, tileSize, imgPacman, resize.NearestNeighbor)
-	pacmanImage = ebiten.NewImageFromImage(resizedPacmanImage)
+	readerFood, _ := os.Open("images/dot.png")
+	imgFood, _, _ := image.Decode(readerFood)
+	resizedFoodImage := resize.Resize(tileSize/5, tileSize/5, imgFood, resize.NearestNeighbor)
+	foodImage = ebiten.NewImageFromImage(resizedFoodImage)
 
+	pacmanImage, _ := readImage("images/pacman-pack/Pacman.png")
+	blueEnemyImage, _ := readImage("images/pacman-pack/BlueEnemy.png")
+	pinkEnemyImage, _ := readImage("images/pacman-pack/PinkEnemy.png")
+	redEnemyImage, _ := readImage("images/pacman-pack/RedEnemy.png")
+
+	pacman := CreateRandomPlayer(gameLevel, pacmanImage)
+	blueEnemy := CreateRandomPlayer(gameLevel, blueEnemyImage)
+	pinkEnemy := CreateRandomPlayer(gameLevel, pinkEnemyImage)
+	redEnemy := CreateRandomPlayer(gameLevel, redEnemyImage)
+
+	gameLevel.Player = pacman
+	gameLevel.Enemies = append(gameLevel.Enemies, &blueEnemy, &pinkEnemy, &redEnemy)
+	gameLevel.CreateFood()
+
+	keyboardController = controllers.NewKeyboardHandler(&gameLevel)
+	go keyboardController.HandlePressedButtons()
+	enemyController = controllers.NewEnemyController(&gameLevel)
+
+}
+
+func readImage(imagePath string) (*ebiten.Image, error) {
+	f, err := os.Open(imagePath)
+	defer f.Close()
+	if err != nil {
+		return nil, err
+	}
+	img, _, err := image.Decode(f)
+	if err != nil {
+		return nil, err
+	}
+	return ebiten.NewImageFromImage(img), nil
+}
+
+func CreateRandomPlayer(lv level.Level, playerImage *ebiten.Image) entities.Pacman {
+	for {
+		x := rand.Intn(lv.Width)
+		y := rand.Intn(lv.Height)
+		if lv.LevelTiles[x][y] == level.Free {
+			p := entities.CreatePlayer(x, y, tileSize)
+			p.Graphic = playerImage
+			return p
+		}
+	}
 }
 
 type Game struct {
 }
 
-func IsButtonPressed() {
-	for {
-		if inpututil.KeyPressDuration(ebiten.KeyArrowDown) > 0 {
-			pressedRotationButton = player.DOWN
-		} else if inpututil.KeyPressDuration(ebiten.KeyArrowUp) > 0 {
-			pressedRotationButton = player.UP
-		} else if inpututil.KeyPressDuration(ebiten.KeyArrowRight) > 0 {
-			pressedRotationButton = player.RIGHT
-		} else if inpututil.KeyPressDuration(ebiten.KeyArrowLeft) > 0 {
-			pressedRotationButton = player.LEFT
-		} else {
-			pressedRotationButton = -1
-		}
-	}
-
-}
-
 func (g *Game) Update() error {
-	var direction int
-	if pressedRotationButton != -1 {
-		direction = pressedRotationButton
-	} else {
-		direction = pacman.Rotation
+	commands := keyboardController.GetKeyboardCommands()
+	commands = append(commands, enemyController.GetCommands()...)
+	for _, com := range commands {
+		com.Execute()
 	}
-
-	controller.UpdatePacman(direction)
+	gameLevel.UpdateAll()
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	frameNumber = (frameNumber + 1) % frameModulo
+	//TODO refactore duplicate code
 	for x := 0; x < widthTiles; x++ {
 		for y := 0; y < heightTiles; y++ {
 			if gameLevel.LevelTiles[x][y] == level.Wall {
 				op := &ebiten.DrawImageOptions{}
 				op.GeoM.Translate(float64(x*tileSize), float64(y*tileSize))
 				screen.DrawImage(wallImage, op)
+			} else if gameLevel.LevelTiles[x][y] == level.Food {
+				op := &ebiten.DrawImageOptions{}
+				op.GeoM.Translate(float64(x*tileSize)+tileSize/2, float64(y*tileSize)+tileSize/2)
+				screen.DrawImage(foodImage, op)
 			}
 		}
 	}
 
+	g.drawPacman(screen)
+	g.drawEnemies(screen)
+}
+
+func (g *Game) drawEnemies(screen *ebiten.Image) {
+	state := frameNumber / (frameModulo / 2)
+	for _, enemy := range gameLevel.Enemies {
+		op := &ebiten.DrawImageOptions{}
+		px, py := enemy.GetCoords()
+		op.GeoM.Translate(float64(px), float64(py))
+		enemyImage := enemy.GetGraphic().SubImage(image.Rect(3+20*(enemy.GetDirection()*2+state), 0, 3+20*(enemy.GetDirection()*2+state)+15, 19)).(*ebiten.Image)
+		screen.DrawImage(enemyImage, op)
+	}
+}
+
+func (g *Game) drawPacman(screen *ebiten.Image) {
+	state := frameNumber / (frameModulo / 3)
+	pacman := gameLevel.Player
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(float64(pacman.X), float64(pacman.Y))
+	px, py := pacman.GetCoords()
+	op.GeoM.Translate(float64(px), float64(py))
+	pacmanImage := (*ebiten.Image)(nil)
+	if state == 2 {
+		pacmanImage = pacman.GetGraphic().SubImage(image.Rect(147, 0, 162, 15)).(*ebiten.Image)
+	} else {
+		state = (state + 1) % 2
+		pacmanImage = pacman.GetGraphic().SubImage(image.Rect(19*(pacman.GetDirection()*2+state), 0, 19*(pacman.GetDirection()*2+state)+15, 15)).(*ebiten.Image)
+	}
 	screen.DrawImage(pacmanImage, op)
 }
 
@@ -112,12 +172,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	Init()
-	gameLevel = level.GenerateRandomLevel(widthTiles, heightTiles)
-	pacman = player.CreatePlayer(gameLevel, tileSize)
-	pressedRotationButton = pacman.Rotation
-	controller = gameController.InitGameController(&gameLevel, &pacman, tileSize)
-	go IsButtonPressed()
 	ebiten.SetWindowSize(gameScreenWidth, gameScreenHeight)
 	ebiten.SetWindowTitle("Pacman")
 	if err := ebiten.RunGame(&Game{}); err != nil {
