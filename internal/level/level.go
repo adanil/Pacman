@@ -61,7 +61,10 @@ func (l *Level) UpdatePacman(player *entities.Pacman) {
 	//If a wall is encountered the coordinates do not change
 	if l.CheckWallCollision(player.GetCoords()) {
 		player.SetCoords(oldX, oldY)
+		player.SetStopped(true)
 		return
+	} else {
+		player.SetStopped(false)
 	}
 
 	xTileOld := (oldX + l.TileSize/2) / l.TileSize
@@ -87,6 +90,9 @@ func (l *Level) UpdateEnemy(enemy entities.Playable) {
 	//If a wall is encountered the coordinates do not change
 	if l.CheckWallCollision(enemy.GetCoords()) {
 		enemy.SetCoords(oldX, oldY)
+		enemy.SetStopped(true)
+	} else {
+		enemy.SetStopped(false)
 	}
 	if l.CheckHit(enemy.GetCoords()) {
 		l.Player.Health--

@@ -16,7 +16,7 @@ import (
 )
 
 /* TODO
-*	Implement pathfinder algorithm for enemies
+*	fix tile resize bags
 *   Add menu
 *   Display the score
 *	Add boosters
@@ -31,8 +31,8 @@ import (
 const (
 	frameModulo      = 150
 	tileSize         = 15
-	gameScreenWidth  = 640 * 2
-	gameScreenHeight = 480 * 2
+	gameScreenWidth  = 640
+	gameScreenHeight = 480
 	widthTiles       = gameScreenWidth / tileSize
 	heightTiles      = gameScreenHeight / tileSize
 )

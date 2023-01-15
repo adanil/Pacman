@@ -12,6 +12,7 @@ type Pacman struct {
 	Speed    int
 	Rotation int
 	Graphic  *ebiten.Image
+	stopped  bool
 }
 
 func CreatePlayer(x, y, tileSize int) Pacman {
@@ -22,6 +23,14 @@ func CreatePlayer(x, y, tileSize int) Pacman {
 	p.Health = 1
 	p.Speed = 1
 	return p
+}
+
+func (p *Pacman) SetStopped(stop bool) {
+	p.stopped = stop
+}
+
+func (p *Pacman) GetStopped() bool {
+	return p.stopped
 }
 
 func (p *Pacman) SetCoords(x, y int) {

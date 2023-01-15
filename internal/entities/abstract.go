@@ -18,6 +18,8 @@ type Movable interface {
 	GetSpeed() int
 	GetCoords() (int, int)
 	GetDirection() int
+	SetStopped(stop bool)
+	GetStopped() bool
 }
 
 type Graphical interface {

@@ -7,7 +7,8 @@ import (
 )
 
 type EnemyController struct {
-	level *level.Level
+	level      *level.Level
+	updateFreq int
 	//TODO add entity which controller controls
 }
 
@@ -22,10 +23,12 @@ func (e *EnemyController) GetCommands() []command.Command {
 		if x%e.level.TileSize != 0 || y%e.level.TileSize != 0 {
 			continue
 		}
-		if n := rand.Intn(5); n != 4 {
+		if n := rand.Intn(5); (n != 4 && e.updateFreq == 0) || enemy.GetStopped() {
 			cdCommand := command.NewChangeDirectionCommand(n, enemy, e.level)
 			commands = append(commands, &cdCommand)
 		}
 	}
+	e.updateFreq++
+	e.updateFreq %= 60
 	return commands
 }
