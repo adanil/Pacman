@@ -1,7 +1,9 @@
 package level
 
 import (
+	"fmt"
 	"math"
+	"os"
 	"pacman/internal/entities"
 )
 
@@ -54,7 +56,7 @@ func (l *Level) UpdateAll() {
 func (l *Level) UpdatePacman(player *entities.Pacman) {
 	oldX, oldY := player.GetCoords()
 	rotation := player.GetDirection()
-	player.Move(rotation)
+	player.Move(rotation, l.Width*l.TileSize, l.Height*l.TileSize)
 
 	//If a wall is encountered the coordinates do not change
 	if l.CheckWallCollision(player.GetCoords()) {
@@ -64,41 +66,56 @@ func (l *Level) UpdatePacman(player *entities.Pacman) {
 
 	xTileOld := (oldX + l.TileSize/2) / l.TileSize
 	yTileOld := (oldY + l.TileSize/2) / l.TileSize
-	l.LevelTiles[xTileOld][yTileOld] = Free
+	l.LevelTiles[xTileOld%l.Width][yTileOld%l.Height] = Free
 
 	newX, newY := player.GetCoords()
 	xTileNew := (newX + l.TileSize/2) / l.TileSize
 	yTileNew := (newY + l.TileSize/2) / l.TileSize
 
-	if l.LevelTiles[xTileNew][yTileNew] == Food {
+	if l.LevelTiles[xTileNew%l.Width][yTileNew%l.Height] == Food {
 		player.Score++
 	}
-	l.LevelTiles[xTileNew][yTileNew] = Player
+	l.LevelTiles[xTileNew%l.Width][yTileNew%l.Height] = Player
 
 }
 
 func (l *Level) UpdateEnemy(enemy entities.Playable) {
 	oldX, oldY := enemy.GetCoords()
 	rotation := enemy.GetDirection()
-	enemy.Move(rotation)
+	enemy.Move(rotation, l.Width*l.TileSize, l.Height*l.TileSize)
 
 	//If a wall is encountered the coordinates do not change
 	if l.CheckWallCollision(enemy.GetCoords()) {
 		enemy.SetCoords(oldX, oldY)
-		return
 	}
-
+	if l.CheckHit(enemy.GetCoords()) {
+		l.Player.Health--
+		l.GameOver()
+	}
 }
 
 func (l *Level) CheckWallCollision(x, y int) bool {
+	fmt.Println(x, y)
 	xTileUp := int(math.Ceil(float64(x) / float64(l.TileSize)))
 	yTileUp := int(math.Ceil(float64(y) / float64(l.TileSize)))
 
 	xTileDown := int(math.Floor(float64(x) / float64(l.TileSize)))
 	yTileDown := int(math.Floor(float64(y) / float64(l.TileSize)))
 
-	return l.LevelTiles[xTileUp][yTileUp] == Wall || l.LevelTiles[xTileDown][yTileDown] == Wall ||
-		l.LevelTiles[xTileUp][yTileDown] == Wall || l.LevelTiles[xTileDown][yTileUp] == Wall
+	return l.LevelTiles[xTileUp%l.Width][yTileUp%l.Height] == Wall || l.LevelTiles[xTileDown%l.Width][yTileDown%l.Height] == Wall ||
+		l.LevelTiles[xTileUp%l.Width][yTileDown%l.Height] == Wall || l.LevelTiles[xTileDown%l.Width][yTileUp%l.Height] == Wall
+}
+
+func (l *Level) CheckHit(x, y int) bool {
+	pacmanX, pacmanY := l.Player.GetCoords()
+	xDiff := int(math.Min(math.Abs(float64(pacmanX-(x+l.TileSize/2))), math.Abs(float64(x-(pacmanX+l.TileSize/2)))))
+	yDiff := int(math.Min(math.Abs(float64(pacmanY-(y+l.TileSize/2))), math.Abs(float64(y-(pacmanY+l.TileSize/2)))))
+	return xDiff < l.TileSize/3 && yDiff < l.TileSize/3
+}
+
+func (l *Level) GameOver() {
+	fmt.Println("Game over. Score: ", l.Player.Score)
+	os.Exit(0)
 }
 
 func (l *Level) ReleaseDecorators() {

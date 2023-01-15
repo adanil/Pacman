@@ -12,7 +12,7 @@ const (
 )
 
 type Movable interface {
-	Move(direction int)
+	Move(direction, widthModulo, heightModulo int)
 	ChangeDirection(direction int)
 	SetCoords(x, y int)
 	GetSpeed() int

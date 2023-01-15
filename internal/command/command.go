@@ -23,7 +23,7 @@ func (c *ChangeDirectionCommand) Execute() {
 	oldX, oldY := c.target.GetCoords()
 	oldRotation := c.target.GetDirection()
 	c.target.ChangeDirection(c.direction)
-	c.target.Move(c.direction) //TODO try to check possibility of change direction without using move method
+	c.target.Move(c.direction, c.level.Width*c.level.TileSize, c.level.Height*c.level.TileSize) //TODO try to check possibility of change direction without using move method
 
 	if c.level.CheckWallCollision(c.target.GetCoords()) {
 		c.target.ChangeDirection(oldRotation)

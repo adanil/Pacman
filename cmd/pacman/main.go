@@ -16,7 +16,6 @@ import (
 )
 
 /* TODO
-* 	Check collision between enemies and pacman
 *	Implement pathfinder algorithm for enemies
 *   Add menu
 *   Display the score
@@ -32,8 +31,8 @@ import (
 const (
 	frameModulo      = 150
 	tileSize         = 15
-	gameScreenWidth  = 640
-	gameScreenHeight = 480
+	gameScreenWidth  = 640 * 2
+	gameScreenHeight = 480 * 2
 	widthTiles       = gameScreenWidth / tileSize
 	heightTiles      = gameScreenHeight / tileSize
 )

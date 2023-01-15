@@ -36,7 +36,7 @@ func (p *Pacman) GetSpeed() int {
 	return p.Speed
 }
 
-func (p *Pacman) Move(direction int) {
+func (p *Pacman) Move(direction, widthModulo, heightModulo int) {
 	switch direction {
 	case UP:
 		p.MoveUp()
@@ -47,6 +47,10 @@ func (p *Pacman) Move(direction int) {
 	case RIGHT:
 		p.MoveRight()
 	}
+	p.X += widthModulo
+	p.Y += heightModulo
+	p.X %= widthModulo
+	p.Y %= heightModulo
 }
 
 func (p *Pacman) ChangeDirection(direction int) {

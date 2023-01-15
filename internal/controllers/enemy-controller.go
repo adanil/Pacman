@@ -18,6 +18,10 @@ func NewEnemyController(level_ *level.Level) EnemyController {
 func (e *EnemyController) GetCommands() []command.Command {
 	var commands []command.Command
 	for _, enemy := range e.level.Enemies {
+		x, y := enemy.GetCoords()
+		if x%e.level.TileSize != 0 || y%e.level.TileSize != 0 {
+			continue
+		}
 		if n := rand.Intn(5); n != 4 {
 			cdCommand := command.NewChangeDirectionCommand(n, enemy, e.level)
 			commands = append(commands, &cdCommand)
