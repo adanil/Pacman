@@ -113,9 +113,12 @@ func (l *Level) CheckWallCollision(x, y int) bool {
 
 func (l *Level) CheckHit(x, y int) bool {
 	pacmanX, pacmanY := l.Player.GetCoords()
-	xDiff := int(math.Min(math.Abs(float64(pacmanX-(x+l.TileSize/2))), math.Abs(float64(x-(pacmanX+l.TileSize/2)))))
-	yDiff := int(math.Min(math.Abs(float64(pacmanY-(y+l.TileSize/2))), math.Abs(float64(y-(pacmanY+l.TileSize/2)))))
-	return xDiff < l.TileSize/3 && yDiff < l.TileSize/3
+	pacmanCenterX := (pacmanX + l.TileSize) / 2
+	pacmanCenterY := (pacmanY + l.TileSize) / 2
+	enemyCenterX := (x + l.TileSize) / 2
+	enemyCenterY := (y + l.TileSize) / 2
+
+	return math.Hypot(float64(enemyCenterX-pacmanCenterX), float64(enemyCenterY-pacmanCenterY)) < float64(l.TileSize)/2.0
 }
 
 func (l *Level) GameOver() {
