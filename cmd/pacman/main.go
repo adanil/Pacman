@@ -51,7 +51,7 @@ func init() {
 	lvGenerator := level.Generator{Creator: &level.RandomLevelGenerator{}}
 	gameLevel = lvGenerator.CreateLevel(widthTiles, heightTiles, tileSize, 0)
 
-	readerWall, _ := os.Open("images/wall.jpg")
+	readerWall, _ := os.Open("images/wall2.jpg")
 	imgWall, _, _ := image.Decode(readerWall)
 	resizedWallImage := resize.Resize(tileSize, tileSize, imgWall, resize.NearestNeighbor)
 	wallImage = ebiten.NewImageFromImage(resizedWallImage)
@@ -138,6 +138,18 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	g.drawPacman(screen)
 	g.drawEnemies(screen)
+}
+
+func (g *Game) drawMap(screen *ebiten.Image) {
+	for x := 0; x < widthTiles; x++ {
+		for y := 0; y < heightTiles; y++ {
+			if gameLevel.LevelTiles[x][y] == level.Wall {
+				op := &ebiten.DrawImageOptions{}
+				op.GeoM.Translate(float64(x*tileSize), float64(y*tileSize))
+				screen.DrawImage(wallImage, op)
+			}
+		}
+	}
 }
 
 func (g *Game) drawEnemies(screen *ebiten.Image) {
