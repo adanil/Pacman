@@ -23,7 +23,7 @@ func (e *EnemyController) GetCommands() []command.Command {
 		if x%e.level.TileSize != 0 || y%e.level.TileSize != 0 {
 			continue
 		}
-		if n := rand.Intn(5); (n != 4 && e.updateFreq == 0) || enemy.GetStopped() {
+		if n := rand.Intn(5); (n != 4 && e.updateFreq == 0) || (n != 4 && enemy.GetStopped()) {
 			cdCommand := command.NewChangeDirectionCommand(n, enemy, e.level)
 			commands = append(commands, &cdCommand)
 		}

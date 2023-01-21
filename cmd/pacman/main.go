@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
@@ -142,6 +143,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 func (g *Game) drawEnemies(screen *ebiten.Image) {
 	state := frameNumber / (frameModulo / 2)
 	for _, enemy := range gameLevel.Enemies {
+		x, y := enemy.GetCoords()
+		dir := enemy.GetDirection()
+		fmt.Printf("Coords: %v, %v ,%v\n", x, y, dir)
 		op := &ebiten.DrawImageOptions{}
 		px, py := enemy.GetCoords()
 		op.GeoM.Translate(float64(px), float64(py))

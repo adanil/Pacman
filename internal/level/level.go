@@ -101,7 +101,6 @@ func (l *Level) UpdateEnemy(enemy entities.Playable) {
 }
 
 func (l *Level) CheckWallCollision(x, y int) bool {
-	fmt.Println(x, y)
 	xTileUp := int(math.Ceil(float64(x) / float64(l.TileSize)))
 	yTileUp := int(math.Ceil(float64(y) / float64(l.TileSize)))
 
