@@ -21,7 +21,7 @@ func CreatePlayer(x, y, tileSize int) Pacman {
 	p.Y = y * tileSize
 	p.Rotation = RIGHT
 	p.Health = 1
-	p.Speed = 1
+	p.Speed = 2
 	return p
 }
 

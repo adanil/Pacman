@@ -31,9 +31,9 @@ import (
 
 const (
 	frameModulo      = 150
-	tileSize         = 15
-	gameScreenWidth  = 640
-	gameScreenHeight = 480
+	tileSize         = 30
+	gameScreenWidth  = 900
+	gameScreenHeight = 780
 	widthTiles       = gameScreenWidth / tileSize
 	heightTiles      = gameScreenHeight / tileSize
 )
@@ -61,10 +61,10 @@ func init() {
 	resizedFoodImage := resize.Resize(tileSize/5, tileSize/5, imgFood, resize.NearestNeighbor)
 	foodImage = ebiten.NewImageFromImage(resizedFoodImage)
 
-	pacmanImage, _ := readImage("images/pacman-pack/Pacman.png")
-	blueEnemyImage, _ := readImage("images/pacman-pack/BlueEnemy.png")
-	pinkEnemyImage, _ := readImage("images/pacman-pack/PinkEnemy.png")
-	redEnemyImage, _ := readImage("images/pacman-pack/RedEnemy.png")
+	pacmanImage, _ := readImage("images/pacman-pack_v2/Pacmanx2.png")
+	blueEnemyImage, _ := readImage("images/pacman-pack_v2/BlueEnemyx2.png")
+	pinkEnemyImage, _ := readImage("images/pacman-pack_v2/PinkEnemyx2.png")
+	redEnemyImage, _ := readImage("images/pacman-pack_v2/RedEnemyx2.png")
 
 	pacman := CreateRandomPlayer(gameLevel, pacmanImage)
 	blueEnemy := CreateRandomPlayer(gameLevel, blueEnemyImage)
@@ -161,7 +161,7 @@ func (g *Game) drawEnemies(screen *ebiten.Image) {
 		op := &ebiten.DrawImageOptions{}
 		px, py := enemy.GetCoords()
 		op.GeoM.Translate(float64(px), float64(py))
-		enemyImage := enemy.GetGraphic().SubImage(image.Rect(3+20*(enemy.GetDirection()*2+state), 0, 3+20*(enemy.GetDirection()*2+state)+15, 19)).(*ebiten.Image)
+		enemyImage := enemy.GetGraphic().SubImage(image.Rect(6+40*(enemy.GetDirection()*2+state), 0, 6+40*(enemy.GetDirection()*2+state)+30, 38)).(*ebiten.Image)
 		screen.DrawImage(enemyImage, op)
 	}
 }
@@ -174,10 +174,10 @@ func (g *Game) drawPacman(screen *ebiten.Image) {
 	op.GeoM.Translate(float64(px), float64(py))
 	pacmanImage := (*ebiten.Image)(nil)
 	if state == 2 {
-		pacmanImage = pacman.GetGraphic().SubImage(image.Rect(147, 0, 162, 15)).(*ebiten.Image)
+		pacmanImage = pacman.GetGraphic().SubImage(image.Rect(296, 0, 324, 30)).(*ebiten.Image)
 	} else {
 		state = (state + 1) % 2
-		pacmanImage = pacman.GetGraphic().SubImage(image.Rect(19*(pacman.GetDirection()*2+state), 0, 19*(pacman.GetDirection()*2+state)+15, 15)).(*ebiten.Image)
+		pacmanImage = pacman.GetGraphic().SubImage(image.Rect(38*(pacman.GetDirection()*2+state), 0, 38*(pacman.GetDirection()*2+state)+30, 30)).(*ebiten.Image)
 	}
 	screen.DrawImage(pacmanImage, op)
 }
