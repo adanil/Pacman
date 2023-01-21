@@ -17,12 +17,9 @@ import (
 )
 
 /* TODO
-*	fix tile resize bags
 *   Add menu
 *   Display the score
 *	Add boosters
-*	Create a beautiful map
-*	Change a wall texture
 * 	Refactor code
 *	Check code by linter
 *	Optional: create AI generator for map
@@ -31,9 +28,9 @@ import (
 
 const (
 	frameModulo      = 150
-	tileSize         = 30
-	gameScreenWidth  = 900
-	gameScreenHeight = 780
+	tileSize         = 32
+	gameScreenWidth  = 928
+	gameScreenHeight = 704
 	widthTiles       = gameScreenWidth / tileSize
 	heightTiles      = gameScreenHeight / tileSize
 )
@@ -48,8 +45,8 @@ var (
 )
 
 func init() {
-	lvGenerator := level.Generator{Creator: &level.RandomLevelGenerator{}}
-	gameLevel = lvGenerator.CreateLevel(widthTiles, heightTiles, tileSize, 0)
+	lvGenerator := level.Generator{Creator: &level.ReadLevel{Filepath: "maps/base"}}
+	gameLevel = lvGenerator.CreateLevel(widthTiles, heightTiles, tileSize)
 
 	readerWall, _ := os.Open("images/wall2.jpg")
 	imgWall, _, _ := image.Decode(readerWall)

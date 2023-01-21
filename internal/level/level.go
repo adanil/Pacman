@@ -16,15 +16,15 @@ const (
 )
 
 type Creator interface {
-	CreateLevel(width, height, tileSize, enemyCount int) Level
+	CreateLevel(width, height, tileSize int) Level
 }
 
 type Generator struct {
 	Creator Creator
 }
 
-func (g *Generator) CreateLevel(width, height, tileSize, enemyCount int) Level {
-	return g.Creator.CreateLevel(width, height, tileSize, enemyCount)
+func (g *Generator) CreateLevel(width, height, tileSize int) Level {
+	return g.Creator.CreateLevel(width, height, tileSize)
 }
 
 type Level struct {
@@ -118,7 +118,7 @@ func (l *Level) CheckHit(x, y int) bool {
 	enemyCenterX := (x + l.TileSize) / 2
 	enemyCenterY := (y + l.TileSize) / 2
 
-	return math.Hypot(float64(enemyCenterX-pacmanCenterX), float64(enemyCenterY-pacmanCenterY)) < float64(l.TileSize)/2.0
+	return math.Hypot(float64(enemyCenterX-pacmanCenterX), float64(enemyCenterY-pacmanCenterY)) < float64(l.TileSize)/3.0
 }
 
 func (l *Level) GameOver() {

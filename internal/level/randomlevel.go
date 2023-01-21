@@ -7,11 +7,8 @@ import (
 
 type RandomLevelGenerator struct {
 }
-type coord struct {
-	x, y int
-}
 
-func (l *RandomLevelGenerator) CreateLevel(width, height, tileSize, enemyCount int) Level {
+func (l *RandomLevelGenerator) CreateLevel(width, height, tileSize int) Level {
 	level := Level{LevelTiles: make([][]int, width), Width: width, Height: height, TileSize: tileSize}
 	for x := 0; x < width; x++ {
 		level.LevelTiles[x] = make([]int, height)
