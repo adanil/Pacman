@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/hajimehoshi/ebiten/v2/text"
+	"golang.org/x/image/font/basicfont"
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
@@ -11,6 +13,7 @@ import (
 	"pacman/internal/controllers"
 	"pacman/internal/entities"
 	"pacman/internal/level"
+	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/nfnt/resize"
@@ -18,7 +21,6 @@ import (
 
 /* TODO
 *   Add menu
-*   Display the score
 *	Add boosters
 * 	Refactor code
 *	Check code by linter
@@ -42,9 +44,11 @@ var (
 	enemyController    controllers.EnemyController
 	wallImage          *ebiten.Image //TODO delete this variable later
 	foodImage          *ebiten.Image //TODO probably this too
+	title              string
 )
 
 func init() {
+	title = "Pacman"
 	lvGenerator := level.Generator{Creator: &level.ReadLevel{Filepath: "maps/base"}}
 	gameLevel = lvGenerator.CreateLevel(widthTiles, heightTiles, tileSize)
 
@@ -135,6 +139,21 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	g.drawPacman(screen)
 	g.drawEnemies(screen)
+	g.drawTitle(screen)
+	g.drawScore(screen)
+
+}
+
+func (g *Game) drawTitle(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(gameScreenWidth/2-20, 20)
+	text.DrawWithOptions(screen, title, basicfont.Face7x13, op)
+}
+
+func (g *Game) drawScore(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(35, gameScreenHeight-15)
+	text.DrawWithOptions(screen, "Score: "+strconv.Itoa(gameLevel.Player.Score), basicfont.Face7x13, op)
 }
 
 func (g *Game) drawMap(screen *ebiten.Image) {
