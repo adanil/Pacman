@@ -37,21 +37,27 @@ type Level struct {
 	DecoratorTimer map[int]entities.Playable
 }
 
-func (l *Level) CreateFood() {
+func (l *Level) CreateFood() int {
+	foodCount := 0
 	for x := 0; x < l.Width; x++ {
 		for y := 0; y < l.Height; y++ {
 			if l.LevelTiles[x][y] == Free {
 				l.LevelTiles[x][y] = Food
+				foodCount++
 			}
 		}
 	}
+	return foodCount - 1 //TODO CHECK IT
 }
 
-func (l *Level) UpdateAll() {
+func (l *Level) UpdateAll() bool {
 	l.UpdatePacman(&l.Player)
 	for _, enemy := range l.Enemies {
-		l.UpdateEnemy(enemy)
+		if l.UpdateEnemy(enemy) == false {
+			return false
+		}
 	}
+	return true
 }
 func (l *Level) UpdatePacman(player *entities.Pacman) {
 	oldX, oldY := player.GetCoords()
@@ -82,7 +88,7 @@ func (l *Level) UpdatePacman(player *entities.Pacman) {
 
 }
 
-func (l *Level) UpdateEnemy(enemy entities.Playable) {
+func (l *Level) UpdateEnemy(enemy entities.Playable) bool {
 	oldX, oldY := enemy.GetCoords()
 	rotation := enemy.GetDirection()
 	enemy.Move(rotation, l.Width*l.TileSize, l.Height*l.TileSize)
@@ -96,8 +102,9 @@ func (l *Level) UpdateEnemy(enemy entities.Playable) {
 	}
 	if l.CheckHit(enemy.GetCoords()) {
 		l.Player.Health--
-		l.GameOver()
+		return false
 	}
+	return true
 }
 
 func (l *Level) CheckWallCollision(x, y int) bool {
