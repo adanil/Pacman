@@ -1,19 +1,21 @@
-package base
+package states
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"pacman/internal/base"
+	"pacman/internal/utility"
 )
 
 const menuFontSize = 32
 const URLFontSize = 16
 
 type StartState struct {
-	g *Game
+	g *base.Game
 }
 
-func NewStartState(g *Game) StartState {
+func NewStartState(g *base.Game) StartState {
 	return StartState{g: g}
 }
 
@@ -27,19 +29,19 @@ func (s StartState) Update() error {
 
 // TODO Add background
 func (s StartState) Draw(screen *ebiten.Image) {
-	menuFont, _ := GetFont(baseFont, menuFontSize, defaultDPI)
+	menuFont, _ := utility.GetFont(base.PacmanFont, menuFontSize, base.DefaultDPI)
 	titleText := "PACMAN"
-	x := (gameScreenWidth - len(titleText)*menuFontSize) / 2
-	text.Draw(screen, titleText, menuFont, x, gameScreenHeight/2-120, yellowColor)
+	x := (base.GameScreenWidth - len(titleText)*menuFontSize) / 2
+	text.Draw(screen, titleText, menuFont, x, base.GameScreenHeight/2-120, base.PacmanColor)
 
 	howToStartTexts := []string{"PRESS SPACE BUTTON", "OR W/A/S/D BUTTON", "OR TOUCH SCREEN"}
 	for ind, t := range howToStartTexts {
-		x = (gameScreenWidth - len(t)*menuFontSize) / 2
-		text.Draw(screen, t, menuFont, x, gameScreenHeight/2+50*ind, yellowColor)
+		x = (base.GameScreenWidth - len(t)*menuFontSize) / 2
+		text.Draw(screen, t, menuFont, x, base.GameScreenHeight/2+50*ind, base.PacmanColor)
 	}
 
-	githubFont, _ := GetFont(baseFont, URLFontSize, defaultDPI)
+	githubFont, _ := utility.GetFont(base.PacmanFont, URLFontSize, base.DefaultDPI)
 	githubURL := "github.com/adanil/Pacman"
-	x = (gameScreenWidth - len(githubURL)*URLFontSize) / 2
-	text.Draw(screen, githubURL, githubFont, x, gameScreenHeight-20, yellowColor)
+	x = (base.GameScreenWidth - len(githubURL)*URLFontSize) / 2
+	text.Draw(screen, githubURL, githubFont, x, base.GameScreenHeight-20, base.PacmanColor)
 }

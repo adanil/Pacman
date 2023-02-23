@@ -1,23 +1,25 @@
-package base
+package states
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
+	"pacman/internal/base"
+	"pacman/internal/utility"
 	"strconv"
 )
 
 const gameOverFontSize = 32
 
 type GameOverState struct {
-	g     *Game
+	g     *base.Game
 	score int
 	font  font.Face
 }
 
-func NewGameOverState(g *Game, score int) GameOverState {
-	defaultFont, _ := GetFont(baseFont, gameOverFontSize, defaultDPI)
+func NewGameOverState(g *base.Game, score int) GameOverState {
+	defaultFont, _ := utility.GetFont(base.PacmanFont, gameOverFontSize, base.DefaultDPI)
 	return GameOverState{g: g, score: score, font: defaultFont}
 }
 
@@ -31,10 +33,10 @@ func (g GameOverState) Update() error {
 func (g GameOverState) Draw(screen *ebiten.Image) {
 	texts := []string{"SCORE:" + strconv.Itoa(g.score), "GAME OVER"}
 	for ind, t := range texts {
-		x := (gameScreenWidth - len(t)*gameOverFontSize) / 2
-		text.Draw(screen, t, g.font, x, gameScreenHeight/2-30+50*ind, yellowColor)
+		x := (base.GameScreenWidth - len(t)*gameOverFontSize) / 2
+		text.Draw(screen, t, g.font, x, base.GameScreenHeight/2-30+50*ind, base.PacmanColor)
 	}
 	restartText := "PRESS SPACE TO RESTART"
-	x := (gameScreenWidth - len(restartText)*gameOverFontSize) / 2
-	text.Draw(screen, restartText, g.font, x, gameScreenHeight/2+150, yellowColor)
+	x := (base.GameScreenWidth - len(restartText)*gameOverFontSize) / 2
+	text.Draw(screen, restartText, g.font, x, base.GameScreenHeight/2+150, base.PacmanColor)
 }

@@ -6,17 +6,17 @@ import (
 	"pacman/internal/level"
 )
 
-type EnemyController struct {
+type RandomEnemyController struct {
 	level      *level.Level
 	updateFreq int
 	//TODO add entity which controller controls
 }
 
-func NewEnemyController(level_ *level.Level) EnemyController {
-	return EnemyController{level: level_}
+func NewRandomEnemyController(level_ *level.Level) RandomEnemyController {
+	return RandomEnemyController{level: level_}
 }
 
-func (e *EnemyController) GetCommands() []command.Command {
+func (e *RandomEnemyController) GetCommands() []command.Command {
 	var commands []command.Command
 	for _, enemy := range e.level.Enemies {
 		x, y := enemy.GetCoords()

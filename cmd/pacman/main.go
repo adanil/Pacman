@@ -6,22 +6,21 @@ import (
 	_ "image/png"
 	"log"
 	bs "pacman/internal/base"
+	"pacman/internal/base/states"
 )
 
 /* TODO
 *	Add boosters
-*	Add pathfind algorithm for enemies
 * 	Refactor code
 *	Check code by linter
-*	Optional: create AI generator for map
-*	Optional: create AI controller for enemies
+*	Add README
  */
 
 func main() {
-	ebiten.SetWindowSize(928, 704) //TODO Refactor constants
+	ebiten.SetWindowSize(bs.GameScreenWidth, bs.GameScreenHeight)
 	ebiten.SetWindowTitle("Pacman")
 	game := &bs.Game{}
-	game.SetState(bs.NewStartState(game))
+	game.SetState(states.NewStartState(game))
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}

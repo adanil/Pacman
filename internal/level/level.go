@@ -1,9 +1,7 @@
 package level
 
 import (
-	"fmt"
 	"math"
-	"os"
 	"pacman/internal/entities"
 )
 
@@ -35,6 +33,7 @@ type Level struct {
 	Player         entities.Pacman
 	Enemies        []entities.Playable
 	DecoratorTimer map[int]entities.Playable
+	Score          int
 }
 
 func (l *Level) CreateFood() int {
@@ -82,7 +81,7 @@ func (l *Level) UpdatePacman(player *entities.Pacman) {
 	yTileNew := (newY + l.TileSize/2) / l.TileSize
 
 	if l.LevelTiles[xTileNew%l.Width][yTileNew%l.Height] == Food {
-		player.Score++
+		l.Score++
 	}
 	l.LevelTiles[xTileNew%l.Width][yTileNew%l.Height] = Player
 
@@ -126,11 +125,6 @@ func (l *Level) CheckHit(x, y int) bool {
 	enemyCenterY := (y + l.TileSize) / 2
 
 	return math.Hypot(float64(enemyCenterX-pacmanCenterX), float64(enemyCenterY-pacmanCenterY)) < float64(l.TileSize)/3.0
-}
-
-func (l *Level) GameOver() {
-	fmt.Println("Game over. Score: ", l.Player.Score)
-	os.Exit(0)
 }
 
 func (l *Level) ReleaseDecorators() {

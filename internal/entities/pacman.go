@@ -5,23 +5,22 @@ import (
 )
 
 type Pacman struct {
-	Score    int
-	Name     string
 	Health   int
-	X, Y     int
-	Speed    int
-	Rotation int
-	Graphic  *ebiten.Image
+	x, y     int
+	speed    int
+	rotation int
+	graphic  *ebiten.Image
 	stopped  bool
 }
 
-func CreatePlayer(x, y, tileSize int) Pacman {
+func CreatePlayer(x, y, tileSize int, graphic *ebiten.Image) Pacman {
 	p := Pacman{}
-	p.X = x * tileSize
-	p.Y = y * tileSize
-	p.Rotation = RIGHT
+	p.x = x * tileSize
+	p.y = y * tileSize
+	p.rotation = RIGHT
 	p.Health = 1
-	p.Speed = 2
+	p.speed = 2
+	p.graphic = graphic
 	return p
 }
 
@@ -34,15 +33,15 @@ func (p *Pacman) GetStopped() bool {
 }
 
 func (p *Pacman) SetCoords(x, y int) {
-	p.X = x
-	p.Y = y
+	p.x = x
+	p.y = y
 }
 func (p *Pacman) GetCoords() (int, int) {
-	return p.X, p.Y
+	return p.x, p.y
 }
 
 func (p *Pacman) GetSpeed() int {
-	return p.Speed
+	return p.speed
 }
 
 func (p *Pacman) Move(direction, widthModulo, heightModulo int) {
@@ -56,38 +55,36 @@ func (p *Pacman) Move(direction, widthModulo, heightModulo int) {
 	case RIGHT:
 		p.MoveRight()
 	}
-	p.X += widthModulo
-	p.Y += heightModulo
-	p.X %= widthModulo
-	p.Y %= heightModulo
+	p.x += widthModulo
+	p.y += heightModulo
+	p.x %= widthModulo
+	p.y %= heightModulo
 }
 
 func (p *Pacman) ChangeDirection(direction int) {
-	p.Rotation = direction
+	p.rotation = direction
 }
 
 func (p *Pacman) GetDirection() int {
-	return p.Rotation
+	return p.rotation
 }
 
 func (p *Pacman) GetGraphic() *ebiten.Image {
-	return p.Graphic
+	return p.graphic
 }
 
 func (p *Pacman) MoveDown() {
-	p.Y += p.Speed
+	p.y += p.speed
 }
 
 func (p *Pacman) MoveUp() {
-	p.Y -= p.Speed
+	p.y -= p.speed
 }
 
 func (p *Pacman) MoveRight() {
-	p.X += p.Speed
+	p.x += p.speed
 }
 
 func (p *Pacman) MoveLeft() {
-	p.X -= p.Speed
+	p.x -= p.speed
 }
-
-//pacmanImage.SubImage(image.Rect(165/9*6, 0, 165/9*7, tileSize)).(*ebiten.Image)
