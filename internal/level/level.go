@@ -14,6 +14,7 @@ const (
 	Bot
 	Food
 	Strawberry
+	NightModeBooster
 )
 
 type Creator interface {
@@ -82,6 +83,25 @@ func (l *Level) CreateStrawberry() {
 		countStrawberry--
 	}
 }
+func (l *Level) CreateNightModeBoosters() {
+	rand.Seed(time.Now().UnixNano())
+	countBoosters := rand.Intn(8) + 2
+	for countBoosters > 0 {
+		var x, y int
+		for {
+			x = rand.Intn(l.Width)
+			y = rand.Intn(l.Height)
+			if (y == 9 && x == 9) || (y == 9 && x == 10) || (y == 9 && x == 11) || (y == 9 && x == 12) || (y == 8 && x == 10) || (y == 8 && x == 11) {
+				continue
+			}
+			if l.LevelTiles[x][y] == Free {
+				break
+			}
+		}
+		l.LevelTiles[x][y] = NightModeBooster
+		countBoosters--
+	}
+}
 
 func (l *Level) UpdateAll() bool {
 	l.UpdatePacman(&l.Player)
@@ -98,7 +118,10 @@ func (l *Level) UpdatePacman(player *entities.Pacman) {
 	player.Move(rotation, l.Width*l.TileSize, l.Height*l.TileSize)
 
 	//If a wall is encountered the coordinates do not change
-	if l.CheckWallCollision(player.GetCoords()) {
+	x, y := player.GetCoords()
+	xTileTmp := x / l.TileSize
+	yTileTmp := y / l.TileSize
+	if (l.CheckWallCollision(player.GetCoords())) || (xTileTmp == 10 && yTileTmp == 7 && player.GetDirection() == entities.DOWN) || (xTileTmp == 11 && yTileTmp == 7 && player.GetDirection() == entities.DOWN) {
 		player.SetCoords(oldX, oldY)
 		player.SetStopped(true)
 		return
@@ -127,12 +150,21 @@ func (l *Level) UpdatePacman(player *entities.Pacman) {
 			Text:        "+200",
 			ExpiredTime: time.Now().Add(3 * time.Second),
 		})
+	} else if l.LevelTiles[xTile][yTile] == NightModeBooster {
+		for _, enemy := range l.Enemies {
+			enemy.SetNightMode(true)
+		}
 	}
 	l.LevelTiles[xTile][yTile] = Player
 
 }
 
 func (l *Level) UpdateEnemy(enemy entities.Playable) bool {
+	if enemy.NightMode() {
+		if enemy.NightModeExpiredTime().Before(time.Now()) {
+			enemy.SetNightMode(false)
+		}
+	}
 	oldX, oldY := enemy.GetCoords()
 	rotation := enemy.GetDirection()
 	enemy.Move(rotation, l.Width*l.TileSize, l.Height*l.TileSize)
@@ -145,8 +177,24 @@ func (l *Level) UpdateEnemy(enemy entities.Playable) bool {
 		enemy.SetStopped(false)
 	}
 	if l.CheckHit(enemy.GetCoords()) {
-		l.Player.Health--
-		return false
+		if !enemy.NightMode() {
+			l.Player.Health--
+			return false
+		} else {
+			x, y := enemy.GetCoords()
+			xTile := x / l.TileSize
+			yTile := y / l.TileSize
+			l.Score += 400
+			l.Texts = append(l.Texts, ScreenText{
+				X:           xTile,
+				Y:           yTile,
+				Text:        "+400",
+				ExpiredTime: time.Now().Add(3 * time.Second),
+			})
+			//Respawn enemy
+			enemy.SetCoords(enemy.GetStartCoords())
+			enemy.SetNightMode(false)
+		}
 	}
 	return true
 }

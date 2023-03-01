@@ -2,6 +2,7 @@ package entities
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"time"
 )
 
 const (
@@ -24,13 +25,19 @@ type Movable interface {
 	SetCoords(x, y int)
 	GetSpeed() int
 	GetCoords() (int, int)
+	GetStartCoords() (int, int)
 	GetDirection() int
 	SetStopped(stop bool)
 	GetStopped() bool
+	NightMode() bool
+	SetNightMode(nightMode bool)
+	NightModeExpiredTime() time.Time
+	SetNightModeExpiredTime(nightModeExpiredTime time.Time)
 }
 
 type Graphical interface {
 	GetGraphic() *ebiten.Image
+	SetGraphic(*ebiten.Image)
 }
 
 type Playable interface {

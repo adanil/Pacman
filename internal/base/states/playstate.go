@@ -28,6 +28,7 @@ var (
 	wallImage          *ebiten.Image //TODO delete this variable later
 	foodImage          *ebiten.Image //TODO probably this too
 	strawberryImage    *ebiten.Image
+	nightModeImage     *ebiten.Image
 	foodCount          int
 )
 
@@ -76,9 +77,14 @@ func (p PlayState) Draw(screen *ebiten.Image) {
 				screen.DrawImage(foodImage, op)
 			} else if gameLevel.LevelTiles[x][y] == level.Strawberry {
 				op := &ebiten.DrawImageOptions{}
-				strawberryWidth, strawberryHeight := foodImage.Size()
+				strawberryWidth, strawberryHeight := strawberryImage.Size()
 				op.GeoM.Translate(float64(x*base.TileSize-strawberryWidth/2)+base.TileSize/2, float64(y*base.TileSize-strawberryHeight/2)+base.TileSize/2)
 				screen.DrawImage(strawberryImage, op)
+			} else if gameLevel.LevelTiles[x][y] == level.NightModeBooster {
+				op := &ebiten.DrawImageOptions{}
+				boosterWidth, boosterHeight := nightModeImage.Size()
+				op.GeoM.Translate(float64(x*base.TileSize-boosterWidth/2)+base.TileSize/2, float64(y*base.TileSize-boosterHeight/2)+base.TileSize/2)
+				screen.DrawImage(nightModeImage, op)
 			}
 		}
 	}
@@ -109,7 +115,13 @@ func (p PlayState) drawEnemies(screen *ebiten.Image) {
 		op := &ebiten.DrawImageOptions{}
 		px, py := enemy.GetCoords()
 		op.GeoM.Translate(float64(px)+5, float64(py)+5)
-		enemyImage := enemy.GetGraphic().SubImage(image.Rect(6+40*(enemy.GetDirection()*2+state), 0, 6+40*(enemy.GetDirection()*2+state)+30, 38)).(*ebiten.Image)
+		var enemyImage *ebiten.Image
+		if enemy.NightMode() {
+			state %= 2
+			enemyImage = enemy.GetGraphic().SubImage(image.Rect(6+40*(state), 0, 6+40*(state)+30, 38)).(*ebiten.Image)
+		} else {
+			enemyImage = enemy.GetGraphic().SubImage(image.Rect(6+40*(enemy.GetDirection()*2+state), 0, 6+40*(enemy.GetDirection()*2+state)+30, 38)).(*ebiten.Image)
+		}
 		screen.DrawImage(enemyImage, op)
 	}
 }
@@ -152,28 +164,28 @@ func initGame() {
 	resizedWallImage := resize.Resize(base.TileSize, base.TileSize, imgWall, resize.NearestNeighbor)
 	wallImage = ebiten.NewImageFromImage(resizedWallImage)
 
-	readerFood, _ := os.Open("images/dot.png")
-	imgFood, _, _ := image.Decode(readerFood)
-	resizedFoodImage := resize.Resize(base.TileSize/5, base.TileSize/5, imgFood, resize.NearestNeighbor)
-	foodImage = ebiten.NewImageFromImage(resizedFoodImage)
-
-	strawberryImage, _ = utility.ReadImage("images/pacman-pack_v2/strawberry.png")
+	foodImage, _ = utility.ReadImage("images/pacman-pack_v2/food_10px.png")
+	strawberryImage, _ = utility.ReadImage("images/pacman-pack_v2/Strawberry_25px.png")
+	nightModeImage, _ = utility.ReadImage("images/pacman-pack_v2/NightModeBooster_20px.png")
 
 	pacmanImage, _ := utility.ReadImage("images/pacman-pack_v2/Pacmanx2.png")
 	blueEnemyImage, _ := utility.ReadImage("images/pacman-pack_v2/BlueEnemyx2.png")
 	pinkEnemyImage, _ := utility.ReadImage("images/pacman-pack_v2/PinkEnemyx2.png")
 	redEnemyImage, _ := utility.ReadImage("images/pacman-pack_v2/RedEnemyx2.png")
-	yellowEnemyImage, _ := utility.ReadImage("images/pacman-pack_v2/YellowEnemyx2.png")
+	yellowEnemyImage, _ := utility.ReadImage("images/pacman-pack_v2/YellowEnemyv3.png")
+
+	ghostImage, _ := utility.ReadImage("images/pacman-pack_v2/Ghostv1.png")
 
 	pacman := CreateRandomPlayer(gameLevel, pacmanImage)
-	blueEnemy := entities.CreatePlayer(12, 9, base.TileSize, blueEnemyImage)
-	pinkEnemy := entities.CreatePlayer(11, 9, base.TileSize, pinkEnemyImage)
-	redEnemy := entities.CreatePlayer(10, 9, base.TileSize, redEnemyImage)
-	yellowEnemy := entities.CreatePlayer(9, 9, base.TileSize, yellowEnemyImage)
+	blueEnemy := entities.CreatePlayer(12, 9, base.TileSize, blueEnemyImage, ghostImage)
+	pinkEnemy := entities.CreatePlayer(11, 9, base.TileSize, pinkEnemyImage, ghostImage)
+	redEnemy := entities.CreatePlayer(10, 9, base.TileSize, redEnemyImage, ghostImage)
+	yellowEnemy := entities.CreatePlayer(9, 9, base.TileSize, yellowEnemyImage, ghostImage)
 
 	gameLevel.Player = pacman
 	gameLevel.Enemies = append(gameLevel.Enemies, &blueEnemy, &pinkEnemy, &redEnemy, &yellowEnemy)
 
+	gameLevel.CreateNightModeBoosters()
 	gameLevel.CreateStrawberry()
 	foodCount = gameLevel.CreateFood()
 
@@ -188,7 +200,7 @@ func CreateRandomPlayer(lv level.Level, playerImage *ebiten.Image) entities.Pacm
 		x := rand.Intn(lv.Width)
 		y := rand.Intn(lv.Height)
 		if lv.LevelTiles[x][y] == level.Free {
-			p := entities.CreatePlayer(x, y, base.TileSize, playerImage)
+			p := entities.CreatePlayer(x, y, base.TileSize, playerImage, playerImage)
 			return p
 		}
 	}

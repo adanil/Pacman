@@ -49,6 +49,9 @@ func (e *SPFEnemyController) GetCommand(enemy entities.Playable) command.Command
 		ex, ey = e.level.Player.GetCoords()
 		target := coordinates{ex / e.level.TileSize, ey / e.level.TileSize}
 		route = findPath(start, target, e.graph)
+		if len(route) <= 1 {
+			return nil
+		}
 		e.routes[enemy] = route
 		e.routesIndex[enemy] = 1
 	}
