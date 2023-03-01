@@ -18,7 +18,6 @@ type SPFEnemyController struct {
 	graph       map[coordinates][]coordinates
 	routes      map[entities.Playable][]coordinates
 	routesIndex map[entities.Playable]int
-	//TODO add entity which controller controls
 }
 
 func NewSPFEnemyController(level_ *level.Level) SPFEnemyController {
@@ -29,44 +28,51 @@ func NewSPFEnemyController(level_ *level.Level) SPFEnemyController {
 func (e *SPFEnemyController) GetCommands() []command.Command {
 	var commands []command.Command
 	for _, enemy := range e.level.Enemies {
-		x, y := enemy.GetCoords()
-		if x%e.level.TileSize != 0 || y%e.level.TileSize != 0 {
-			continue
-		}
-		x /= e.level.TileSize
-		y /= e.level.TileSize
-		route, exist := e.routes[enemy]
-		if !exist || e.routesIndex[enemy] >= len(route) || enemy.GetStopped() {
-			ex, ey := enemy.GetCoords()
-			start := coordinates{ex / e.level.TileSize, ey / e.level.TileSize}
-			ex, ey = e.level.Player.GetCoords()
-			target := coordinates{ex / e.level.TileSize, ey / e.level.TileSize}
-			route = findPath(start, target, e.graph)
-			e.routes[enemy] = route
-			e.routesIndex[enemy] = 1
-		}
-		nextCoords := route[e.routesIndex[enemy]]
-		var direction int
-		if nextCoords.x-x == 1 {
-			direction = entities.RIGHT
-		} else if nextCoords.x-x == -1 {
-			direction = entities.LEFT
-		} else if nextCoords.y-y == 1 {
-			direction = entities.DOWN
-		} else {
-			direction = entities.UP
-		}
-		e.routesIndex[enemy]++
-		if enemy.GetDirection() == direction {
-			continue
-		} else {
-			cdCommand := command.NewChangeDirectionCommand(direction, enemy, e.level)
-			commands = append(commands, &cdCommand)
+		if c := e.GetCommand(enemy); c != nil {
+			commands = append(commands, c)
 		}
 	}
-	//e.updateFreq++
-	//e.updateFreq %= 60
 	return commands
+}
+
+func (e *SPFEnemyController) GetCommand(enemy entities.Playable) command.Command {
+	x, y := enemy.GetCoords()
+	if x%e.level.TileSize != 0 || y%e.level.TileSize != 0 {
+		return nil
+	}
+	x /= e.level.TileSize
+	y /= e.level.TileSize
+	route, exist := e.routes[enemy]
+	if !exist || e.routesIndex[enemy] >= len(route) || enemy.GetStopped() {
+		ex, ey := enemy.GetCoords()
+		start := coordinates{ex / e.level.TileSize, ey / e.level.TileSize}
+		ex, ey = e.level.Player.GetCoords()
+		target := coordinates{ex / e.level.TileSize, ey / e.level.TileSize}
+		route = findPath(start, target, e.graph)
+		e.routes[enemy] = route
+		e.routesIndex[enemy] = 1
+	}
+	nextCoords := route[e.routesIndex[enemy]]
+	var direction int
+	if nextCoords.x-x == 1 {
+		direction = entities.RIGHT
+	} else if nextCoords.x-x == -1 {
+		direction = entities.LEFT
+	} else if nextCoords.y-y == 1 {
+		direction = entities.DOWN
+	} else {
+		direction = entities.UP
+	}
+	if direction == entities.OppositeDirection[enemy.GetDirection()] {
+		return nil
+	}
+	e.routesIndex[enemy]++
+	if enemy.GetDirection() == direction {
+		return nil
+	}
+	cdCommand := command.NewChangeDirectionCommand(direction, enemy, e.level)
+	return &cdCommand
+
 }
 
 // Dijkstra algorithm

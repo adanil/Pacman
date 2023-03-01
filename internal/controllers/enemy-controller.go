@@ -3,13 +3,13 @@ package controllers
 import (
 	"math/rand"
 	"pacman/internal/command"
+	"pacman/internal/entities"
 	"pacman/internal/level"
+	"time"
 )
 
 type RandomEnemyController struct {
-	level      *level.Level
-	updateFreq int
-	//TODO add entity which controller controls
+	level *level.Level
 }
 
 func NewRandomEnemyController(level_ *level.Level) RandomEnemyController {
@@ -19,16 +19,22 @@ func NewRandomEnemyController(level_ *level.Level) RandomEnemyController {
 func (e *RandomEnemyController) GetCommands() []command.Command {
 	var commands []command.Command
 	for _, enemy := range e.level.Enemies {
-		x, y := enemy.GetCoords()
-		if x%e.level.TileSize != 0 || y%e.level.TileSize != 0 {
-			continue
-		}
-		if n := rand.Intn(5); (n != 4 && e.updateFreq == 0) || (n != 4 && enemy.GetStopped()) {
-			cdCommand := command.NewChangeDirectionCommand(n, enemy, e.level)
-			commands = append(commands, &cdCommand)
+		if c := e.GetCommand(enemy); c != nil {
+			commands = append(commands, c)
 		}
 	}
-	e.updateFreq++
-	e.updateFreq %= 60
 	return commands
+}
+
+func (e *RandomEnemyController) GetCommand(enemy entities.Playable) command.Command {
+	rand.Seed(time.Now().UnixNano())
+	x, y := enemy.GetCoords()
+	if x%e.level.TileSize != 0 || y%e.level.TileSize != 0 {
+		return nil
+	}
+	if n := rand.Intn(1328142) % 5; n != 4 && (n != entities.OppositeDirection[enemy.GetDirection()] || enemy.GetStopped()) {
+		cdCommand := command.NewChangeDirectionCommand(n, enemy, e.level)
+		return &cdCommand
+	}
+	return nil
 }

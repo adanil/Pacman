@@ -10,9 +10,9 @@ import (
 
 const (
 	FrameModulo      = 150
-	TileSize         = 32
-	GameScreenWidth  = 928
-	GameScreenHeight = 704
+	TileSize         = 40
+	GameScreenWidth  = 880
+	GameScreenHeight = 840
 	WidthTiles       = GameScreenWidth / TileSize
 	HeightTiles      = GameScreenHeight / TileSize
 	DefaultDPI       = 64

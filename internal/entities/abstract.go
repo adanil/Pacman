@@ -11,6 +11,13 @@ const (
 	RIGHT
 )
 
+var OppositeDirection = map[int]int{
+	UP:    DOWN,
+	DOWN:  UP,
+	LEFT:  RIGHT,
+	RIGHT: LEFT,
+}
+
 type Movable interface {
 	Move(direction, widthModulo, heightModulo int)
 	ChangeDirection(direction int)

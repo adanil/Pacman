@@ -2,7 +2,9 @@ package level
 
 import (
 	"math"
+	"math/rand"
 	"pacman/internal/entities"
+	"time"
 )
 
 const (
@@ -11,6 +13,7 @@ const (
 	Player
 	Bot
 	Food
+	Strawberry
 )
 
 type Creator interface {
@@ -25,6 +28,12 @@ func (g *Generator) CreateLevel(width, height, tileSize int) Level {
 	return g.Creator.CreateLevel(width, height, tileSize)
 }
 
+type ScreenText struct {
+	X, Y        int
+	Text        string
+	ExpiredTime time.Time
+}
+
 type Level struct {
 	LevelTiles     [][]int
 	TileSize       int
@@ -34,12 +43,17 @@ type Level struct {
 	Enemies        []entities.Playable
 	DecoratorTimer map[int]entities.Playable
 	Score          int
+	FoodEaten      int
+	Texts          []ScreenText
 }
 
 func (l *Level) CreateFood() int {
 	foodCount := 0
 	for x := 0; x < l.Width; x++ {
 		for y := 0; y < l.Height; y++ {
+			if (y == 9 && x == 9) || (y == 9 && x == 10) || (y == 9 && x == 11) || (y == 9 && x == 12) || (y == 8 && x == 10) || (y == 8 && x == 11) {
+				continue
+			}
 			if l.LevelTiles[x][y] == Free {
 				l.LevelTiles[x][y] = Food
 				foodCount++
@@ -47,6 +61,26 @@ func (l *Level) CreateFood() int {
 		}
 	}
 	return foodCount - 1 //TODO CHECK IT
+}
+
+func (l *Level) CreateStrawberry() {
+	rand.Seed(time.Now().UnixNano())
+	countStrawberry := rand.Intn(3) + 2
+	for countStrawberry > 0 {
+		var x, y int
+		for {
+			x = rand.Intn(l.Width)
+			y = rand.Intn(l.Height)
+			if (y == 9 && x == 9) || (y == 9 && x == 10) || (y == 9 && x == 11) || (y == 9 && x == 12) || (y == 8 && x == 10) || (y == 8 && x == 11) {
+				continue
+			}
+			if l.LevelTiles[x][y] == Free {
+				break
+			}
+		}
+		l.LevelTiles[x][y] = Strawberry
+		countStrawberry--
+	}
 }
 
 func (l *Level) UpdateAll() bool {
@@ -80,10 +114,21 @@ func (l *Level) UpdatePacman(player *entities.Pacman) {
 	xTileNew := (newX + l.TileSize/2) / l.TileSize
 	yTileNew := (newY + l.TileSize/2) / l.TileSize
 
-	if l.LevelTiles[xTileNew%l.Width][yTileNew%l.Height] == Food {
+	xTile := xTileNew % l.Width
+	yTile := yTileNew % l.Height
+	if l.LevelTiles[xTile][yTile] == Food {
 		l.Score++
+		l.FoodEaten++
+	} else if l.LevelTiles[xTile][yTile] == Strawberry {
+		l.Score += 200
+		l.Texts = append(l.Texts, ScreenText{
+			X:           xTile,
+			Y:           yTile,
+			Text:        "+200",
+			ExpiredTime: time.Now().Add(3 * time.Second),
+		})
 	}
-	l.LevelTiles[xTileNew%l.Width][yTileNew%l.Height] = Player
+	l.LevelTiles[xTile][yTile] = Player
 
 }
 
