@@ -26,7 +26,7 @@ func (e *RandomEnemyController) GetCommands() []command.Command {
 	return commands
 }
 
-func (e *RandomEnemyController) GetCommand(enemy entities.Playable) command.Command {
+func (e *RandomEnemyController) GetCommand(enemy *entities.Enemy) command.Command {
 	rand.Seed(time.Now().UnixNano())
 	x, y := enemy.GetCoords()
 	if x%e.level.TileSize != 0 || y%e.level.TileSize != 0 {

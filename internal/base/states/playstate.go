@@ -3,14 +3,10 @@ package states
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
-	"github.com/nfnt/resize"
 	"golang.org/x/image/font"
 	"image"
-	"math/rand"
-	"os"
 	"pacman/internal/base"
 	"pacman/internal/controllers"
-	"pacman/internal/entities"
 	"pacman/internal/level"
 	"pacman/internal/utility"
 	"strconv"
@@ -24,12 +20,6 @@ var (
 	gameLevel          level.Level
 	keyboardController controllers.KeyboardHandler
 	enemyController    controllers.MixedEnemyController
-	imageMap           *ebiten.Image
-	wallImage          *ebiten.Image //TODO delete this variable later
-	foodImage          *ebiten.Image //TODO probably this too
-	strawberryImage    *ebiten.Image
-	nightModeImage     *ebiten.Image
-	foodCount          int
 )
 
 type PlayState struct {
@@ -43,8 +33,22 @@ func NewPlayState(g *base.Game) PlayState {
 	return PlayState{g: g, font: defaultFont}
 }
 
+func initGame() {
+	lvGenerator := level.Generator{Creator: &level.ReadLevel{Filepath: "maps/base"}}
+	initLevel(lvGenerator)
+
+	keyboardController = controllers.NewKeyboardHandler(&gameLevel)
+	go keyboardController.HandlePressedButtons() //TODO Exit
+	enemyController = controllers.NewMixedEnemyController(&gameLevel, 20)
+}
+
+func initLevel(lvGenerator level.Generator) {
+	gameLevel = lvGenerator.CreateLevel(base.WidthTiles, base.HeightTiles, base.TileSize)
+	gameLevel.CreateEntities()
+}
+
 func (p PlayState) Update() error {
-	if gameLevel.FoodEaten == foodCount {
+	if gameLevel.IsAllFoodEaten() {
 		p.g.SetState(NewWinState(p.g, gameLevel.Score))
 		return nil
 	}
@@ -66,25 +70,21 @@ func (p PlayState) Draw(screen *ebiten.Image) {
 	//TODO refactor duplicate code
 	for x := 0; x < base.WidthTiles; x++ {
 		for y := 0; y < base.HeightTiles; y++ {
-			if gameLevel.LevelTiles[x][y] == level.Wall {
-				//op := &ebiten.DrawImageOptions{}
-				//op.GeoM.Translate(float64(x*base.TileSize), float64(y*base.TileSize))
-				//screen.DrawImage(wallImage, op)
-			} else if gameLevel.LevelTiles[x][y] == level.Food {
+			if gameLevel.LevelTiles[x][y] == level.Food {
 				op := &ebiten.DrawImageOptions{}
-				foodWidth, foodHeight := foodImage.Size()
+				foodWidth, foodHeight := base.Images["food"].Size()
 				op.GeoM.Translate(float64(x*base.TileSize-foodWidth/2)+base.TileSize/2, float64(y*base.TileSize-foodHeight/2)+base.TileSize/2)
-				screen.DrawImage(foodImage, op)
+				screen.DrawImage(base.Images["food"], op)
 			} else if gameLevel.LevelTiles[x][y] == level.Strawberry {
 				op := &ebiten.DrawImageOptions{}
-				strawberryWidth, strawberryHeight := strawberryImage.Size()
+				strawberryWidth, strawberryHeight := base.Images["strawberry"].Size()
 				op.GeoM.Translate(float64(x*base.TileSize-strawberryWidth/2)+base.TileSize/2, float64(y*base.TileSize-strawberryHeight/2)+base.TileSize/2)
-				screen.DrawImage(strawberryImage, op)
+				screen.DrawImage(base.Images["strawberry"], op)
 			} else if gameLevel.LevelTiles[x][y] == level.NightModeBooster {
 				op := &ebiten.DrawImageOptions{}
-				boosterWidth, boosterHeight := nightModeImage.Size()
+				boosterWidth, boosterHeight := base.Images["booster"].Size()
 				op.GeoM.Translate(float64(x*base.TileSize-boosterWidth/2)+base.TileSize/2, float64(y*base.TileSize-boosterHeight/2)+base.TileSize/2)
-				screen.DrawImage(nightModeImage, op)
+				screen.DrawImage(base.Images["booster"], op)
 			}
 		}
 	}
@@ -106,7 +106,7 @@ func (p PlayState) drawScore(screen *ebiten.Image) {
 
 func (p PlayState) drawMap(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
-	screen.DrawImage(imageMap, op)
+	screen.DrawImage(base.Images["map"], op)
 }
 
 func (p PlayState) drawEnemies(screen *ebiten.Image) {
@@ -149,59 +149,5 @@ func (p PlayState) drawMapText(screen *ebiten.Image) {
 			continue
 		}
 		text.Draw(screen, screenText.Text, textFont, screenText.X*base.TileSize+5, screenText.Y*(base.TileSize)+base.TileSize/2+5, base.PacmanColor)
-	}
-}
-
-func initGame() {
-	lvGenerator := level.Generator{Creator: &level.ReadLevel{Filepath: "maps/base"}}
-	gameLevel = lvGenerator.CreateLevel(base.WidthTiles, base.HeightTiles, base.TileSize)
-
-	readerMap, _ := os.Open("images/map_v3.png")
-	imgMapTmp, _, _ := image.Decode(readerMap)
-	imageMap = ebiten.NewImageFromImage(imgMapTmp)
-	readerWall, _ := os.Open("images/wall2.jpg")
-	imgWall, _, _ := image.Decode(readerWall)
-	resizedWallImage := resize.Resize(base.TileSize, base.TileSize, imgWall, resize.NearestNeighbor)
-	wallImage = ebiten.NewImageFromImage(resizedWallImage)
-
-	foodImage, _ = utility.ReadImage("images/pacman-pack_v2/food_10px.png")
-	strawberryImage, _ = utility.ReadImage("images/pacman-pack_v2/Strawberry_25px.png")
-	nightModeImage, _ = utility.ReadImage("images/pacman-pack_v2/NightModeBooster_20px.png")
-
-	pacmanImage, _ := utility.ReadImage("images/pacman-pack_v2/Pacmanx2.png")
-	blueEnemyImage, _ := utility.ReadImage("images/pacman-pack_v2/BlueEnemyx2.png")
-	pinkEnemyImage, _ := utility.ReadImage("images/pacman-pack_v2/PinkEnemyx2.png")
-	redEnemyImage, _ := utility.ReadImage("images/pacman-pack_v2/RedEnemyx2.png")
-	yellowEnemyImage, _ := utility.ReadImage("images/pacman-pack_v2/YellowEnemyv3.png")
-
-	ghostImage, _ := utility.ReadImage("images/pacman-pack_v2/Ghostv1.png")
-
-	pacman := CreateRandomPlayer(gameLevel, pacmanImage)
-	blueEnemy := entities.CreatePlayer(12, 9, base.TileSize, blueEnemyImage, ghostImage)
-	pinkEnemy := entities.CreatePlayer(11, 9, base.TileSize, pinkEnemyImage, ghostImage)
-	redEnemy := entities.CreatePlayer(10, 9, base.TileSize, redEnemyImage, ghostImage)
-	yellowEnemy := entities.CreatePlayer(9, 9, base.TileSize, yellowEnemyImage, ghostImage)
-
-	gameLevel.Player = pacman
-	gameLevel.Enemies = append(gameLevel.Enemies, &blueEnemy, &pinkEnemy, &redEnemy, &yellowEnemy)
-
-	gameLevel.CreateNightModeBoosters()
-	gameLevel.CreateStrawberry()
-	foodCount = gameLevel.CreateFood()
-
-	keyboardController = controllers.NewKeyboardHandler(&gameLevel)
-	go keyboardController.HandlePressedButtons() //TODO Exit
-	enemyController = controllers.NewMixedEnemyController(&gameLevel, 20)
-}
-
-func CreateRandomPlayer(lv level.Level, playerImage *ebiten.Image) entities.Pacman {
-	for {
-		rand.Seed(time.Now().UnixNano())
-		x := rand.Intn(lv.Width)
-		y := rand.Intn(lv.Height)
-		if lv.LevelTiles[x][y] == level.Free {
-			p := entities.CreatePlayer(x, y, base.TileSize, playerImage, playerImage)
-			return p
-		}
 	}
 }

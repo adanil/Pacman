@@ -1,8 +1,10 @@
 package level
 
 import (
+	"github.com/hajimehoshi/ebiten/v2"
 	"math"
 	"math/rand"
+	"pacman/internal/base"
 	"pacman/internal/entities"
 	"time"
 )
@@ -11,7 +13,6 @@ const (
 	Free = iota
 	Wall
 	Player
-	Bot
 	Food
 	Strawberry
 	NightModeBooster
@@ -41,27 +42,49 @@ type Level struct {
 	Width          int
 	Height         int
 	Player         entities.Pacman
-	Enemies        []entities.Playable
-	DecoratorTimer map[int]entities.Playable
+	Enemies        []*entities.Enemy
+	DecoratorTimer map[int]entities.Entity
 	Score          int
 	FoodEaten      int
 	Texts          []ScreenText
+	FoodCount      int
 }
 
-func (l *Level) CreateFood() int {
-	foodCount := 0
+func (l *Level) CreateEntities() {
+	l.Player = l.CreateRandomPlayer(base.Images["pacman"])
+	blueEnemy := entities.CreateEnemy(12*l.TileSize, 9*l.TileSize, base.Images["blueEnemy"])
+	pinkEnemy := entities.CreateEnemy(11*l.TileSize, 9*l.TileSize, base.Images["pinkEnemy"])
+	redEnemy := entities.CreateEnemy(10*l.TileSize, 9*l.TileSize, base.Images["redEnemy"])
+	yellowEnemy := entities.CreateEnemy(9*l.TileSize, 9*l.TileSize, base.Images["yellowEnemy"])
+
+	l.Enemies = append(l.Enemies, &blueEnemy, &pinkEnemy, &redEnemy, &yellowEnemy)
+
+	l.CreateNightModeBoosters()
+	l.CreateStrawberry()
+	l.CreateFood()
+}
+
+func (l *Level) CreateRandomPlayer(playerImage *ebiten.Image) entities.Pacman {
+	for {
+		rand.Seed(time.Now().UnixNano())
+		x := rand.Intn(l.Width)
+		y := rand.Intn(l.Height)
+		if l.LevelTiles[x][y] == Free && !isEnemySpawn(Coordinates{x, y}) {
+			p := entities.CreatePacman(x*l.TileSize, y*l.TileSize, playerImage)
+			return p
+		}
+	}
+}
+
+func (l *Level) CreateFood() {
 	for x := 0; x < l.Width; x++ {
 		for y := 0; y < l.Height; y++ {
-			if (y == 9 && x == 9) || (y == 9 && x == 10) || (y == 9 && x == 11) || (y == 9 && x == 12) || (y == 8 && x == 10) || (y == 8 && x == 11) {
-				continue
-			}
-			if l.LevelTiles[x][y] == Free {
+			if l.LevelTiles[x][y] == Free && !isEnemySpawn(Coordinates{x, y}) {
 				l.LevelTiles[x][y] = Food
-				foodCount++
+				l.FoodCount++
 			}
 		}
 	}
-	return foodCount - 1 //TODO CHECK IT
 }
 
 func (l *Level) CreateStrawberry() {
@@ -72,10 +95,7 @@ func (l *Level) CreateStrawberry() {
 		for {
 			x = rand.Intn(l.Width)
 			y = rand.Intn(l.Height)
-			if (y == 9 && x == 9) || (y == 9 && x == 10) || (y == 9 && x == 11) || (y == 9 && x == 12) || (y == 8 && x == 10) || (y == 8 && x == 11) {
-				continue
-			}
-			if l.LevelTiles[x][y] == Free {
+			if l.LevelTiles[x][y] == Free && !isEnemySpawn(Coordinates{x, y}) {
 				break
 			}
 		}
@@ -91,10 +111,7 @@ func (l *Level) CreateNightModeBoosters() {
 		for {
 			x = rand.Intn(l.Width)
 			y = rand.Intn(l.Height)
-			if (y == 9 && x == 9) || (y == 9 && x == 10) || (y == 9 && x == 11) || (y == 9 && x == 12) || (y == 8 && x == 10) || (y == 8 && x == 11) {
-				continue
-			}
-			if l.LevelTiles[x][y] == Free {
+			if l.LevelTiles[x][y] == Free && !isEnemySpawn(Coordinates{x, y}) {
 				break
 			}
 		}
@@ -112,37 +129,29 @@ func (l *Level) UpdateAll() bool {
 	}
 	return true
 }
+
 func (l *Level) UpdatePacman(player *entities.Pacman) {
-	oldX, oldY := player.GetCoords()
 	rotation := player.GetDirection()
-	player.Move(rotation, l.Width*l.TileSize, l.Height*l.TileSize)
+	nextX, nextY := player.CalculateNextPosition(rotation, l.Width*l.TileSize, l.Height*l.TileSize)
 
 	//If a wall is encountered the coordinates do not change
 	x, y := player.GetCoords()
 	xTileTmp := x / l.TileSize
 	yTileTmp := y / l.TileSize
-	if (l.CheckWallCollision(player.GetCoords())) || (xTileTmp == 10 && yTileTmp == 7 && player.GetDirection() == entities.DOWN) || (xTileTmp == 11 && yTileTmp == 7 && player.GetDirection() == entities.DOWN) {
-		player.SetCoords(oldX, oldY)
-		player.SetStopped(true)
+	if (l.CheckWallCollision(nextX, nextY)) || (xTileTmp == 10 && yTileTmp == 7 && player.GetDirection() == entities.DOWN) || (xTileTmp == 11 && yTileTmp == 7 && player.GetDirection() == entities.DOWN) {
 		return
-	} else {
-		player.SetStopped(false)
 	}
+	player.Move(rotation, l.Width*l.TileSize, l.Height*l.TileSize)
 
-	xTileOld := (oldX + l.TileSize/2) / l.TileSize
-	yTileOld := (oldY + l.TileSize/2) / l.TileSize
-	l.LevelTiles[xTileOld%l.Width][yTileOld%l.Height] = Free
+	xTile := ((nextX + l.TileSize/2) / l.TileSize) % l.Width
+	yTile := ((nextY + l.TileSize/2) / l.TileSize) % l.Height
 
-	newX, newY := player.GetCoords()
-	xTileNew := (newX + l.TileSize/2) / l.TileSize
-	yTileNew := (newY + l.TileSize/2) / l.TileSize
-
-	xTile := xTileNew % l.Width
-	yTile := yTileNew % l.Height
-	if l.LevelTiles[xTile][yTile] == Food {
+	object := l.LevelTiles[xTile][yTile]
+	switch object {
+	case Food:
 		l.Score++
 		l.FoodEaten++
-	} else if l.LevelTiles[xTile][yTile] == Strawberry {
+	case Strawberry:
 		l.Score += 200
 		l.Texts = append(l.Texts, ScreenText{
 			X:           xTile,
@@ -150,53 +159,56 @@ func (l *Level) UpdatePacman(player *entities.Pacman) {
 			Text:        "+200",
 			ExpiredTime: time.Now().Add(3 * time.Second),
 		})
-	} else if l.LevelTiles[xTile][yTile] == NightModeBooster {
+	case NightModeBooster:
 		for _, enemy := range l.Enemies {
 			enemy.SetNightMode(true)
 		}
 	}
-	l.LevelTiles[xTile][yTile] = Player
 
+	l.LevelTiles[xTile][yTile] = Free
 }
 
-func (l *Level) UpdateEnemy(enemy entities.Playable) bool {
-	if enemy.NightMode() {
-		if enemy.NightModeExpiredTime().Before(time.Now()) {
-			enemy.SetNightMode(false)
-		}
+func (l *Level) UpdateEnemy(enemy *entities.Enemy) bool {
+	if enemy.NightMode() && enemy.NightModeExpiredTime().Before(time.Now()) {
+		enemy.SetNightMode(false)
 	}
-	oldX, oldY := enemy.GetCoords()
+
 	rotation := enemy.GetDirection()
-	enemy.Move(rotation, l.Width*l.TileSize, l.Height*l.TileSize)
+	nextX, nextY := enemy.CalculateNextPosition(rotation, l.Width*l.TileSize, l.Height*l.TileSize)
 
 	//If a wall is encountered the coordinates do not change
-	if l.CheckWallCollision(enemy.GetCoords()) {
-		enemy.SetCoords(oldX, oldY)
+	if l.CheckWallCollision(nextX, nextY) {
 		enemy.SetStopped(true)
 	} else {
+		enemy.Move(rotation, l.Width*l.TileSize, l.Height*l.TileSize)
 		enemy.SetStopped(false)
 	}
+
 	if l.CheckHit(enemy.GetCoords()) {
 		if !enemy.NightMode() {
-			l.Player.Health--
+			l.Player.DecreaseHealth()
 			return false
-		} else {
-			x, y := enemy.GetCoords()
-			xTile := x / l.TileSize
-			yTile := y / l.TileSize
-			l.Score += 400
-			l.Texts = append(l.Texts, ScreenText{
-				X:           xTile,
-				Y:           yTile,
-				Text:        "+400",
-				ExpiredTime: time.Now().Add(3 * time.Second),
-			})
-			//Respawn enemy
-			enemy.SetCoords(enemy.GetStartCoords())
-			enemy.SetNightMode(false)
 		}
+		l.enemyKilled(enemy)
 	}
+
 	return true
+}
+
+func (l *Level) enemyKilled(enemy *entities.Enemy) {
+	x, y := enemy.GetCoords()
+	xTile := x / l.TileSize
+	yTile := y / l.TileSize
+	l.Score += 400
+	l.Texts = append(l.Texts, ScreenText{
+		X:           xTile,
+		Y:           yTile,
+		Text:        "+400",
+		ExpiredTime: time.Now().Add(3 * time.Second),
+	})
+	//Respawn enemy
+	enemy.SetCoords(enemy.GetStartCoords())
+	enemy.SetNightMode(false)
 }
 
 func (l *Level) CheckWallCollision(x, y int) bool {
@@ -220,6 +232,6 @@ func (l *Level) CheckHit(x, y int) bool {
 	return math.Hypot(float64(enemyCenterX-pacmanCenterX), float64(enemyCenterY-pacmanCenterY)) < float64(l.TileSize)/3.0
 }
 
-func (l *Level) ReleaseDecorators() {
-
+func (l *Level) IsAllFoodEaten() bool {
+	return l.FoodCount == l.FoodEaten
 }

@@ -2,7 +2,6 @@ package entities
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"time"
 )
 
 const (
@@ -21,18 +20,12 @@ var OppositeDirection = map[int]int{
 
 type Movable interface {
 	Move(direction, widthModulo, heightModulo int)
+	CalculateNextPosition(direction, widthModulo, heightModulo int) (int, int)
 	ChangeDirection(direction int)
-	SetCoords(x, y int)
-	GetSpeed() int
-	GetCoords() (int, int)
-	GetStartCoords() (int, int)
 	GetDirection() int
-	SetStopped(stop bool)
-	GetStopped() bool
-	NightMode() bool
-	SetNightMode(nightMode bool)
-	NightModeExpiredTime() time.Time
-	SetNightModeExpiredTime(nightModeExpiredTime time.Time)
+	SetCoords(x, y int)
+	GetCoords() (int, int)
+	GetSpeed() int
 }
 
 type Graphical interface {
@@ -40,7 +33,7 @@ type Graphical interface {
 	SetGraphic(*ebiten.Image)
 }
 
-type Playable interface {
+type Entity interface {
 	Movable
 	Graphical
 }

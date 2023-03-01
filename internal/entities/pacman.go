@@ -2,66 +2,28 @@ package entities
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"time"
 )
 
 type Pacman struct {
-	Health               int
-	x, y                 int
-	startX, startY       int
-	speed                int
-	rotation             int
-	graphic              *ebiten.Image
-	baseGraphic          *ebiten.Image
-	ghostGraphic         *ebiten.Image
-	stopped              bool
-	nightMode            bool
-	nightModeExpiredTime time.Time
+	health         int
+	x, y           int
+	startX, startY int
+	speed          int
+	rotation       int
+	graphic        *ebiten.Image
 }
 
-func (p *Pacman) NightModeExpiredTime() time.Time {
-	return p.nightModeExpiredTime
-}
-
-func (p *Pacman) SetNightModeExpiredTime(nightModeExpiredTime time.Time) {
-	p.nightModeExpiredTime = nightModeExpiredTime
-}
-
-func (p *Pacman) NightMode() bool {
-	return p.nightMode
-}
-
-func (p *Pacman) SetNightMode(nightMode bool) {
-	if nightMode {
-		p.SetGraphic(p.ghostGraphic)
-		p.SetNightModeExpiredTime(time.Now().Add(5 * time.Second))
-	} else {
-		p.SetGraphic(p.baseGraphic)
+func CreatePacman(x, y int, baseGraphic *ebiten.Image) Pacman {
+	return Pacman{
+		health:   1,
+		x:        x,
+		y:        y,
+		startX:   x,
+		startY:   y,
+		speed:    2,
+		rotation: RIGHT,
+		graphic:  baseGraphic,
 	}
-	p.nightMode = nightMode
-}
-
-func CreatePlayer(x, y, tileSize int, baseGraphic, ghostGraphic *ebiten.Image) Pacman {
-	p := Pacman{}
-	p.x = x * tileSize
-	p.y = y * tileSize
-	p.startX = p.x
-	p.startY = p.y
-	p.rotation = RIGHT
-	p.Health = 1
-	p.speed = 2
-	p.graphic = baseGraphic
-	p.baseGraphic = baseGraphic
-	p.ghostGraphic = ghostGraphic
-	return p
-}
-
-func (p *Pacman) SetStopped(stop bool) {
-	p.stopped = stop
-}
-
-func (p *Pacman) GetStopped() bool {
-	return p.stopped
 }
 
 func (p *Pacman) SetCoords(x, y int) {
@@ -81,20 +43,28 @@ func (p *Pacman) GetSpeed() int {
 }
 
 func (p *Pacman) Move(direction, widthModulo, heightModulo int) {
+	newX, newY := p.CalculateNextPosition(direction, widthModulo, heightModulo)
+	p.SetCoords(newX, newY)
+}
+
+func (p *Pacman) CalculateNextPosition(direction, widthModulo, heightModulo int) (int, int) {
+	x := p.x
+	y := p.y
 	switch direction {
 	case UP:
-		p.MoveUp()
+		y -= p.speed
 	case DOWN:
-		p.MoveDown()
+		y += p.speed
 	case LEFT:
-		p.MoveLeft()
+		x -= p.speed
 	case RIGHT:
-		p.MoveRight()
+		x += p.speed
 	}
-	p.x += widthModulo
-	p.y += heightModulo
-	p.x %= widthModulo
-	p.y %= heightModulo
+	x += widthModulo
+	y += heightModulo
+	x %= widthModulo
+	y %= heightModulo
+	return x, y
 }
 
 func (p *Pacman) ChangeDirection(direction int) {
@@ -113,18 +83,6 @@ func (p *Pacman) GetGraphic() *ebiten.Image {
 	return p.graphic
 }
 
-func (p *Pacman) MoveDown() {
-	p.y += p.speed
-}
-
-func (p *Pacman) MoveUp() {
-	p.y -= p.speed
-}
-
-func (p *Pacman) MoveRight() {
-	p.x += p.speed
-}
-
-func (p *Pacman) MoveLeft() {
-	p.x -= p.speed
+func (p *Pacman) DecreaseHealth() {
+	p.health--
 }

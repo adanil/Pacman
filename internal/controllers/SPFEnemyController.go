@@ -16,13 +16,13 @@ type SPFEnemyController struct {
 	level       *level.Level
 	updateFreq  int
 	graph       map[coordinates][]coordinates
-	routes      map[entities.Playable][]coordinates
-	routesIndex map[entities.Playable]int
+	routes      map[entities.Enemy][]coordinates
+	routesIndex map[entities.Enemy]int
 }
 
 func NewSPFEnemyController(level_ *level.Level) SPFEnemyController {
 	g := formGraph(level_)
-	return SPFEnemyController{level: level_, graph: g, routes: make(map[entities.Playable][]coordinates), routesIndex: make(map[entities.Playable]int)}
+	return SPFEnemyController{level: level_, graph: g, routes: make(map[entities.Enemy][]coordinates), routesIndex: make(map[entities.Enemy]int)}
 }
 
 func (e *SPFEnemyController) GetCommands() []command.Command {
@@ -35,15 +35,15 @@ func (e *SPFEnemyController) GetCommands() []command.Command {
 	return commands
 }
 
-func (e *SPFEnemyController) GetCommand(enemy entities.Playable) command.Command {
+func (e *SPFEnemyController) GetCommand(enemy *entities.Enemy) command.Command {
 	x, y := enemy.GetCoords()
 	if x%e.level.TileSize != 0 || y%e.level.TileSize != 0 {
 		return nil
 	}
 	x /= e.level.TileSize
 	y /= e.level.TileSize
-	route, exist := e.routes[enemy]
-	if !exist || e.routesIndex[enemy] >= len(route) || enemy.GetStopped() {
+	route, exist := e.routes[*enemy]
+	if !exist || e.routesIndex[*enemy] >= len(route) || enemy.GetStopped() {
 		ex, ey := enemy.GetCoords()
 		start := coordinates{ex / e.level.TileSize, ey / e.level.TileSize}
 		ex, ey = e.level.Player.GetCoords()
@@ -52,10 +52,10 @@ func (e *SPFEnemyController) GetCommand(enemy entities.Playable) command.Command
 		if len(route) <= 1 {
 			return nil
 		}
-		e.routes[enemy] = route
-		e.routesIndex[enemy] = 1
+		e.routes[*enemy] = route
+		e.routesIndex[*enemy] = 1
 	}
-	nextCoords := route[e.routesIndex[enemy]]
+	nextCoords := route[e.routesIndex[*enemy]]
 	var direction int
 	if nextCoords.x-x == 1 {
 		direction = entities.RIGHT
@@ -69,7 +69,7 @@ func (e *SPFEnemyController) GetCommand(enemy entities.Playable) command.Command
 	if direction == entities.OppositeDirection[enemy.GetDirection()] {
 		return nil
 	}
-	e.routesIndex[enemy]++
+	e.routesIndex[*enemy]++
 	if enemy.GetDirection() == direction {
 		return nil
 	}
