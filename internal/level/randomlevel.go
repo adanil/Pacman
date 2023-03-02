@@ -9,13 +9,13 @@ type RandomLevelGenerator struct {
 }
 
 func (l *RandomLevelGenerator) CreateLevel(width, height, tileSize int) Level {
-	level := Level{LevelTiles: make([][]int, width), Width: width, Height: height, TileSize: tileSize}
+	level := NewLevel(width, height, tileSize)
 	for x := 0; x < width; x++ {
-		level.LevelTiles[x] = make([]int, height)
+		level.levelTiles[x] = make([]int, height)
 	}
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
-			level.LevelTiles[x][y] = Wall
+			level.levelTiles[x][y] = Wall
 		}
 	}
 
@@ -29,7 +29,7 @@ func (l *RandomLevelGenerator) CreateLevel(width, height, tileSize int) Level {
 	currY := rand.Intn(height)
 	for pathLen != 0 {
 		if isValid(level, currX, currY, width, height) {
-			level.LevelTiles[currX][currY] = Free
+			level.levelTiles[currX][currY] = Free
 			lenLine--
 			pathLen--
 		} else {
@@ -58,7 +58,7 @@ func (l *RandomLevelGenerator) CreateLevel(width, height, tileSize int) Level {
 }
 
 func isValid(level Level, x, y, width, height int) bool {
-	if level.LevelTiles[x][y] == Free {
+	if level.levelTiles[x][y] == Free {
 		return false
 	}
 	// a b c
@@ -88,10 +88,10 @@ func isValid(level Level, x, y, width, height int) bool {
 	kX := coordInc(x, width)
 	kY := coordInc(y, height)
 
-	if (level.LevelTiles[aX][aY] == Free && level.LevelTiles[bX][bY] == Free && level.LevelTiles[dX][dY] == Free) ||
-		(level.LevelTiles[dX][dY] == Free && level.LevelTiles[mX][mY] == Free && level.LevelTiles[nX][nY] == Free) ||
-		(level.LevelTiles[bX][bY] == Free && level.LevelTiles[cX][cY] == Free && level.LevelTiles[gX][gY] == Free) ||
-		(level.LevelTiles[nX][nY] == Free && level.LevelTiles[kX][kY] == Free && level.LevelTiles[gX][gY] == Free) {
+	if (level.levelTiles[aX][aY] == Free && level.levelTiles[bX][bY] == Free && level.levelTiles[dX][dY] == Free) ||
+		(level.levelTiles[dX][dY] == Free && level.levelTiles[mX][mY] == Free && level.levelTiles[nX][nY] == Free) ||
+		(level.levelTiles[bX][bY] == Free && level.levelTiles[cX][cY] == Free && level.levelTiles[gX][gY] == Free) ||
+		(level.levelTiles[nX][nY] == Free && level.levelTiles[kX][kY] == Free && level.levelTiles[gX][gY] == Free) {
 		return false
 	}
 	return true

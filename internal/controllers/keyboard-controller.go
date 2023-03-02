@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"pacman/internal/command"
@@ -11,7 +12,6 @@ import (
 type KeyboardHandler struct {
 	pressedRotationButton int
 	level                 *level.Level
-	//TODO add entity which controller controls
 }
 
 func NewKeyboardHandler(level_ *level.Level) KeyboardHandler {
@@ -22,25 +22,38 @@ func (k *KeyboardHandler) GetKeyboardCommands() []command.Command {
 	var commands []command.Command
 
 	if k.pressedRotationButton != -1 {
-		cdCommand := command.NewChangeDirectionCommand(k.pressedRotationButton, &k.level.Player, k.level)
+		cdCommand := command.NewChangeDirectionCommand(k.pressedRotationButton, k.level.Player(), k.level)
 		commands = append(commands, &cdCommand)
 	}
 
 	return commands
 }
 
-func (k *KeyboardHandler) HandlePressedButtons() {
+func (k *KeyboardHandler) HandlePressedButtons(ctx context.Context) {
 	for {
-		if inpututil.KeyPressDuration(ebiten.KeyArrowDown) > 0 {
-			k.pressedRotationButton = entities.DOWN
-		} else if inpututil.KeyPressDuration(ebiten.KeyArrowUp) > 0 {
-			k.pressedRotationButton = entities.UP
-		} else if inpututil.KeyPressDuration(ebiten.KeyArrowRight) > 0 {
-			k.pressedRotationButton = entities.RIGHT
-		} else if inpututil.KeyPressDuration(ebiten.KeyArrowLeft) > 0 {
-			k.pressedRotationButton = entities.LEFT
-		} else {
-			k.pressedRotationButton = -1
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			if inpututil.KeyPressDuration(ebiten.KeyArrowDown) > 0 {
+				k.pressedRotationButton = entities.DOWN
+			} else if inpututil.KeyPressDuration(ebiten.KeyArrowUp) > 0 {
+				k.pressedRotationButton = entities.UP
+			} else if inpututil.KeyPressDuration(ebiten.KeyArrowRight) > 0 {
+				k.pressedRotationButton = entities.RIGHT
+			} else if inpututil.KeyPressDuration(ebiten.KeyArrowLeft) > 0 {
+				k.pressedRotationButton = entities.LEFT
+			} else if inpututil.KeyPressDuration(ebiten.KeyS) > 0 {
+				k.pressedRotationButton = entities.DOWN
+			} else if inpututil.KeyPressDuration(ebiten.KeyW) > 0 {
+				k.pressedRotationButton = entities.UP
+			} else if inpututil.KeyPressDuration(ebiten.KeyD) > 0 {
+				k.pressedRotationButton = entities.RIGHT
+			} else if inpututil.KeyPressDuration(ebiten.KeyA) > 0 {
+				k.pressedRotationButton = entities.LEFT
+			} else {
+				k.pressedRotationButton = -1
+			}
 		}
 	}
 

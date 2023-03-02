@@ -1,10 +1,14 @@
 package level
 
+var enemiesSpawnCoords = []Coordinates{{9, 9}, {10, 9}, {11, 9}, {12, 9}, {10, 8}, {11, 8}}
+
 type Coordinates struct {
-	x, y int
+	X, Y int
 }
 
-var enemiesSpawnCoords = []Coordinates{{9, 9}, {10, 9}, {11, 9}, {12, 9}, {10, 8}, {11, 8}}
+func NewCoordinate(x, y int) Coordinates {
+	return Coordinates{x, y}
+}
 
 func isEnemySpawn(c Coordinates) bool {
 	for _, s := range enemiesSpawnCoords {

@@ -10,7 +10,6 @@ import (
 )
 
 /* TODO
-* 	Refactor code
 *	Check code by linter
 *	Add README
  */

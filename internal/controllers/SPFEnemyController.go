@@ -8,13 +8,10 @@ import (
 	"pacman/pkg/queue"
 )
 
-type coordinates struct {
-	x, y int
-}
+type coordinates = level.Coordinates
 
 type SPFEnemyController struct {
 	level       *level.Level
-	updateFreq  int
 	graph       map[coordinates][]coordinates
 	routes      map[entities.Enemy][]coordinates
 	routesIndex map[entities.Enemy]int
@@ -27,7 +24,7 @@ func NewSPFEnemyController(level_ *level.Level) SPFEnemyController {
 
 func (e *SPFEnemyController) GetCommands() []command.Command {
 	var commands []command.Command
-	for _, enemy := range e.level.Enemies {
+	for _, enemy := range e.level.Enemies() {
 		if c := e.GetCommand(enemy); c != nil {
 			commands = append(commands, c)
 		}
@@ -37,17 +34,17 @@ func (e *SPFEnemyController) GetCommands() []command.Command {
 
 func (e *SPFEnemyController) GetCommand(enemy *entities.Enemy) command.Command {
 	x, y := enemy.GetCoords()
-	if x%e.level.TileSize != 0 || y%e.level.TileSize != 0 {
+	if x%e.level.TileSize() != 0 || y%e.level.TileSize() != 0 {
 		return nil
 	}
-	x /= e.level.TileSize
-	y /= e.level.TileSize
+	x /= e.level.TileSize()
+	y /= e.level.TileSize()
 	route, exist := e.routes[*enemy]
 	if !exist || e.routesIndex[*enemy] >= len(route) || enemy.GetStopped() {
 		ex, ey := enemy.GetCoords()
-		start := coordinates{ex / e.level.TileSize, ey / e.level.TileSize}
-		ex, ey = e.level.Player.GetCoords()
-		target := coordinates{ex / e.level.TileSize, ey / e.level.TileSize}
+		start := level.NewCoordinate(ex/e.level.TileSize(), ey/e.level.TileSize())
+		ex, ey = e.level.Player().GetCoords()
+		target := level.NewCoordinate(ex/e.level.TileSize(), ey/e.level.TileSize())
 		route = findPath(start, target, e.graph)
 		if len(route) <= 1 {
 			return nil
@@ -57,11 +54,11 @@ func (e *SPFEnemyController) GetCommand(enemy *entities.Enemy) command.Command {
 	}
 	nextCoords := route[e.routesIndex[*enemy]]
 	var direction int
-	if nextCoords.x-x == 1 {
+	if nextCoords.X-x == 1 {
 		direction = entities.RIGHT
-	} else if nextCoords.x-x == -1 {
+	} else if nextCoords.X-x == -1 {
 		direction = entities.LEFT
-	} else if nextCoords.y-y == 1 {
+	} else if nextCoords.Y-y == 1 {
 		direction = entities.DOWN
 	} else {
 		direction = entities.UP
@@ -85,7 +82,7 @@ func findPath(start, target coordinates, g map[coordinates][]coordinates) []coor
 	dist := make(map[coordinates]int)
 	dist[start] = 0
 	prev := make(map[coordinates]coordinates)
-	prev[start] = coordinates{x: -1, y: -1}
+	prev[start] = level.NewCoordinate(-1, -1)
 
 	for nodeInProcess.Size() != 0 {
 		current := nodeInProcess.Front()
@@ -107,7 +104,7 @@ func findPath(start, target coordinates, g map[coordinates][]coordinates) []coor
 
 	var path []coordinates
 	current := target
-	stop := coordinates{-1, -1}
+	stop := level.NewCoordinate(-1, -1)
 	for current != stop {
 		path = append(path, current)
 		current = prev[current]
@@ -119,32 +116,29 @@ func findPath(start, target coordinates, g map[coordinates][]coordinates) []coor
 
 func formGraph(lv *level.Level) map[coordinates][]coordinates {
 	g := make(map[coordinates][]coordinates)
-	for h := 0; h < lv.Height; h++ {
-		for w := 0; w < lv.Width; w++ {
-			if lv.LevelTiles[w][h] == level.Wall {
+	for h := 0; h < lv.Height(); h++ {
+		for w := 0; w < lv.Width(); w++ {
+			if lv.GetEntityByCoordinates(level.NewCoordinate(w, h)) == level.Wall {
 				continue
 			}
-			currCoord := coordinates{
-				x: w,
-				y: h,
-			}
+			currCoordinates := level.NewCoordinate(w, h)
 
-			wright := (w + 1) % lv.Width
-			wleft := (w - 1 + lv.Width) % lv.Width
-			hup := (h + 1) % lv.Height
-			hdown := (h - 1 + lv.Height) % lv.Height
+			wRight := (w + 1) % lv.Width()
+			wLeft := (w - 1 + lv.Width()) % lv.Width()
+			hUp := (h + 1) % lv.Height()
+			hDown := (h - 1 + lv.Height()) % lv.Height()
 
-			if lv.LevelTiles[wright][h] != level.Wall {
-				g[currCoord] = append(g[currCoord], coordinates{x: wright, y: h})
+			if lv.GetEntityByCoordinates(level.NewCoordinate(wRight, h)) != level.Wall {
+				g[currCoordinates] = append(g[currCoordinates], level.NewCoordinate(wRight, h))
 			}
-			if lv.LevelTiles[wleft][h] != level.Wall {
-				g[currCoord] = append(g[currCoord], coordinates{x: wleft, y: h})
+			if lv.GetEntityByCoordinates(level.NewCoordinate(wLeft, h)) != level.Wall {
+				g[currCoordinates] = append(g[currCoordinates], level.NewCoordinate(wLeft, h))
 			}
-			if lv.LevelTiles[w][hup] != level.Wall {
-				g[currCoord] = append(g[currCoord], coordinates{x: w, y: hup})
+			if lv.GetEntityByCoordinates(level.NewCoordinate(w, hUp)) != level.Wall {
+				g[currCoordinates] = append(g[currCoordinates], level.NewCoordinate(w, hUp))
 			}
-			if lv.LevelTiles[w][hdown] != level.Wall {
-				g[currCoord] = append(g[currCoord], coordinates{x: w, y: hdown})
+			if lv.GetEntityByCoordinates(level.NewCoordinate(w, hDown)) != level.Wall {
+				g[currCoordinates] = append(g[currCoordinates], level.NewCoordinate(w, hDown))
 			}
 		}
 	}

@@ -5,14 +5,18 @@ import (
 	"os"
 )
 
+type Creator interface {
+	CreateLevel(width, height, tileSIze int) Level
+}
+
 type ReadLevel struct {
 	Filepath string
 }
 
 func (l *ReadLevel) CreateLevel(width, height, tileSize int) Level {
-	level := Level{LevelTiles: make([][]int, width), Width: width, Height: height, TileSize: tileSize}
+	level := NewLevel(width, height, tileSize)
 	for x := 0; x < width; x++ {
-		level.LevelTiles[x] = make([]int, height)
+		level.levelTiles[x] = make([]int, height)
 	}
 
 	file, _ := os.OpenFile(l.Filepath, os.O_RDONLY, 0666)
@@ -25,7 +29,7 @@ func (l *ReadLevel) CreateLevel(width, height, tileSize int) Level {
 		for index, c := range line {
 			switch c {
 			case '#':
-				level.LevelTiles[index][h] = Wall
+				level.levelTiles[index][h] = Wall
 			}
 		}
 		h++

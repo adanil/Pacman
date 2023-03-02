@@ -1,6 +1,7 @@
 package states
 
 import (
+	"context"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
@@ -14,6 +15,7 @@ import (
 )
 
 const fontSize = 16
+const enemyRandomControlPercentage = 40
 
 var (
 	frameNumber        int
@@ -23,33 +25,23 @@ var (
 )
 
 type PlayState struct {
-	g    *base.Game
-	font font.Face
+	g      *base.Game
+	font   font.Face
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 func NewPlayState(g *base.Game) PlayState {
 	defaultFont, _ := utility.GetFont(base.PacmanFont, fontSize, base.DefaultDPI)
-	initGame() //TODO Maybe fix this
-	return PlayState{g: g, font: defaultFont}
+	p := PlayState{g: g, font: defaultFont}
+	p.initGame()
+	return p
 }
 
-func initGame() {
-	lvGenerator := level.Generator{Creator: &level.ReadLevel{Filepath: "maps/base"}}
-	initLevel(lvGenerator)
-
-	keyboardController = controllers.NewKeyboardHandler(&gameLevel)
-	go keyboardController.HandlePressedButtons() //TODO Exit
-	enemyController = controllers.NewMixedEnemyController(&gameLevel, 20)
-}
-
-func initLevel(lvGenerator level.Generator) {
-	gameLevel = lvGenerator.CreateLevel(base.WidthTiles, base.HeightTiles, base.TileSize)
-	gameLevel.CreateEntities()
-}
-
-func (p PlayState) Update() error {
+func (p *PlayState) Update() error {
 	if gameLevel.IsAllFoodEaten() {
-		p.g.SetState(NewWinState(p.g, gameLevel.Score))
+		p.cancel()
+		p.g.SetState(NewWinState(p.g, gameLevel.Score()))
 		return nil
 	}
 	commands := keyboardController.GetKeyboardCommands()
@@ -59,32 +51,25 @@ func (p PlayState) Update() error {
 	}
 	ok := gameLevel.UpdateAll()
 	if ok == false {
-		p.g.SetState(NewGameOverState(p.g, gameLevel.Score))
+		p.cancel()
+		p.g.SetState(NewGameOverState(p.g, gameLevel.Score()))
 	}
 	return nil
 }
 
-func (p PlayState) Draw(screen *ebiten.Image) {
+func (p *PlayState) Draw(screen *ebiten.Image) {
 	frameNumber = (frameNumber + 1) % base.FrameModulo
 	p.drawMap(screen)
-	//TODO refactor duplicate code
 	for x := 0; x < base.WidthTiles; x++ {
 		for y := 0; y < base.HeightTiles; y++ {
-			if gameLevel.LevelTiles[x][y] == level.Food {
-				op := &ebiten.DrawImageOptions{}
-				foodWidth, foodHeight := base.Images["food"].Size()
-				op.GeoM.Translate(float64(x*base.TileSize-foodWidth/2)+base.TileSize/2, float64(y*base.TileSize-foodHeight/2)+base.TileSize/2)
-				screen.DrawImage(base.Images["food"], op)
-			} else if gameLevel.LevelTiles[x][y] == level.Strawberry {
-				op := &ebiten.DrawImageOptions{}
-				strawberryWidth, strawberryHeight := base.Images["strawberry"].Size()
-				op.GeoM.Translate(float64(x*base.TileSize-strawberryWidth/2)+base.TileSize/2, float64(y*base.TileSize-strawberryHeight/2)+base.TileSize/2)
-				screen.DrawImage(base.Images["strawberry"], op)
-			} else if gameLevel.LevelTiles[x][y] == level.NightModeBooster {
-				op := &ebiten.DrawImageOptions{}
-				boosterWidth, boosterHeight := base.Images["booster"].Size()
-				op.GeoM.Translate(float64(x*base.TileSize-boosterWidth/2)+base.TileSize/2, float64(y*base.TileSize-boosterHeight/2)+base.TileSize/2)
-				screen.DrawImage(base.Images["booster"], op)
+			entity := gameLevel.GetEntityByCoordinates(level.NewCoordinate(x, y))
+			switch entity {
+			case level.Food:
+				p.drawEntityAtCenter(screen, base.Images["food"], x, y)
+			case level.Strawberry:
+				p.drawEntityAtCenter(screen, base.Images["strawberry"], x, y)
+			case level.NightModeBooster:
+				p.drawEntityAtCenter(screen, base.Images["booster"], x, y)
 			}
 		}
 	}
@@ -95,23 +80,30 @@ func (p PlayState) Draw(screen *ebiten.Image) {
 	p.drawScore(screen)
 }
 
-func (p PlayState) drawTitle(screen *ebiten.Image) {
+func (p *PlayState) drawEntityAtCenter(screen, entityImage *ebiten.Image, x int, y int) {
+	op := &ebiten.DrawImageOptions{}
+	foodWidth, foodHeight := entityImage.Size()
+	op.GeoM.Translate(float64(x*base.TileSize-foodWidth/2)+base.TileSize/2, float64(y*base.TileSize-foodHeight/2)+base.TileSize/2)
+	screen.DrawImage(entityImage, op)
+}
+
+func (p *PlayState) drawTitle(screen *ebiten.Image) {
 	x := (base.GameScreenWidth - len(base.Title)*fontSize) / 2
 	text.Draw(screen, base.Title, p.font, x, 25, base.PacmanColor)
 }
 
-func (p PlayState) drawScore(screen *ebiten.Image) {
-	text.Draw(screen, "Score: "+strconv.Itoa(gameLevel.Score), p.font, 35, base.GameScreenHeight-14, base.PacmanColor)
+func (p *PlayState) drawScore(screen *ebiten.Image) {
+	text.Draw(screen, "score: "+strconv.Itoa(gameLevel.Score()), p.font, 35, base.GameScreenHeight-14, base.PacmanColor)
 }
 
-func (p PlayState) drawMap(screen *ebiten.Image) {
+func (p *PlayState) drawMap(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	screen.DrawImage(base.Images["map"], op)
 }
 
-func (p PlayState) drawEnemies(screen *ebiten.Image) {
+func (p *PlayState) drawEnemies(screen *ebiten.Image) {
 	state := frameNumber / (base.FrameModulo / 2)
-	for _, enemy := range gameLevel.Enemies {
+	for _, enemy := range gameLevel.Enemies() {
 		op := &ebiten.DrawImageOptions{}
 		px, py := enemy.GetCoords()
 		op.GeoM.Translate(float64(px)+5, float64(py)+5)
@@ -126,9 +118,9 @@ func (p PlayState) drawEnemies(screen *ebiten.Image) {
 	}
 }
 
-func (p PlayState) drawPacman(screen *ebiten.Image) {
+func (p *PlayState) drawPacman(screen *ebiten.Image) {
 	state := frameNumber / (base.FrameModulo / 3)
-	pacman := gameLevel.Player
+	pacman := gameLevel.Player()
 	op := &ebiten.DrawImageOptions{}
 	px, py := pacman.GetCoords()
 	op.GeoM.Translate(float64(px+5), float64(py+5))
@@ -142,12 +134,27 @@ func (p PlayState) drawPacman(screen *ebiten.Image) {
 	screen.DrawImage(pacmanImage, op)
 }
 
-func (p PlayState) drawMapText(screen *ebiten.Image) {
+func (p *PlayState) drawMapText(screen *ebiten.Image) {
 	textFont, _ := utility.GetFont(base.PacmanFont, 8, base.DefaultDPI)
-	for _, screenText := range gameLevel.Texts {
-		if screenText.ExpiredTime.Before(time.Now()) {
+	for _, screenText := range gameLevel.Texts() {
+		if screenText.ExpiredTime().Before(time.Now()) {
 			continue
 		}
-		text.Draw(screen, screenText.Text, textFont, screenText.X*base.TileSize+5, screenText.Y*(base.TileSize)+base.TileSize/2+5, base.PacmanColor)
+		text.Draw(screen, screenText.Text(), textFont, screenText.X()*base.TileSize+5, screenText.Y()*(base.TileSize)+base.TileSize/2+5, base.PacmanColor)
 	}
+}
+
+func (p *PlayState) initGame() {
+	levelCreator := &level.ReadLevel{Filepath: "maps/base"}
+	initLevel(levelCreator)
+
+	p.ctx, p.cancel = context.WithCancel(context.Background())
+	keyboardController = controllers.NewKeyboardHandler(&gameLevel)
+	go keyboardController.HandlePressedButtons(p.ctx)
+	enemyController = controllers.NewMixedEnemyController(&gameLevel, enemyRandomControlPercentage)
+}
+
+func initLevel(creator level.Creator) {
+	gameLevel = creator.CreateLevel(base.WidthTiles, base.HeightTiles, base.TileSize)
+	gameLevel.CreateEntities()
 }

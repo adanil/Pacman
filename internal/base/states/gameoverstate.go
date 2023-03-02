@@ -25,7 +25,8 @@ func NewGameOverState(g *base.Game, score int) GameOverState {
 
 func (g GameOverState) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		g.g.SetState(NewPlayState(g.g))
+		playState := NewPlayState(g.g)
+		g.g.SetState(&playState)
 	}
 	return nil
 }

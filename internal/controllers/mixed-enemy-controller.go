@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"math"
 	"math/rand"
 	"pacman/internal/command"
 	"pacman/internal/level"
@@ -18,13 +19,13 @@ func NewMixedEnemyController(level_ *level.Level, randomThreshold int) MixedEnem
 		level:            level_,
 		randomController: NewRandomEnemyController(level_),
 		spfController:    NewSPFEnemyController(level_),
-		randomThreshold:  randomThreshold,
+		randomThreshold:  int(math.Min(float64(randomThreshold), 100)),
 	}
 }
 
 func (m *MixedEnemyController) GetCommands() []command.Command {
 	var commands []command.Command
-	for _, enemy := range m.level.Enemies {
+	for _, enemy := range m.level.Enemies() {
 		n := rand.Intn(100)
 		var c command.Command
 		if n > m.randomThreshold {

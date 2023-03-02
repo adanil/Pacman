@@ -5,7 +5,6 @@ import (
 	"pacman/internal/command"
 	"pacman/internal/entities"
 	"pacman/internal/level"
-	"time"
 )
 
 type RandomEnemyController struct {
@@ -18,7 +17,7 @@ func NewRandomEnemyController(level_ *level.Level) RandomEnemyController {
 
 func (e *RandomEnemyController) GetCommands() []command.Command {
 	var commands []command.Command
-	for _, enemy := range e.level.Enemies {
+	for _, enemy := range e.level.Enemies() {
 		if c := e.GetCommand(enemy); c != nil {
 			commands = append(commands, c)
 		}
@@ -27,12 +26,11 @@ func (e *RandomEnemyController) GetCommands() []command.Command {
 }
 
 func (e *RandomEnemyController) GetCommand(enemy *entities.Enemy) command.Command {
-	rand.Seed(time.Now().UnixNano())
 	x, y := enemy.GetCoords()
-	if x%e.level.TileSize != 0 || y%e.level.TileSize != 0 {
+	if x%e.level.TileSize() != 0 || y%e.level.TileSize() != 0 {
 		return nil
 	}
-	if n := rand.Intn(1328142) % 5; n != 4 && (n != entities.OppositeDirection[enemy.GetDirection()] || enemy.GetStopped()) {
+	if n := rand.Intn(5); n != 4 && (n != entities.OppositeDirection[enemy.GetDirection()] || enemy.GetStopped()) {
 		cdCommand := command.NewChangeDirectionCommand(n, enemy, e.level)
 		return &cdCommand
 	}

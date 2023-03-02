@@ -22,7 +22,8 @@ func NewStartState(g *base.Game) StartState {
 func (s StartState) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) || inpututil.IsKeyJustPressed(ebiten.KeyW) || inpututil.IsKeyJustPressed(ebiten.KeyA) || inpututil.IsKeyJustPressed(ebiten.KeyS) ||
 		inpututil.IsKeyJustPressed(ebiten.KeyD) || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		s.g.SetState(NewPlayState(s.g))
+		playState := NewPlayState(s.g)
+		s.g.SetState(&playState)
 	}
 	return nil
 }
