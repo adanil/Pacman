@@ -20,7 +20,7 @@ func CreatePacman(x, y int, baseGraphic *ebiten.Image) Pacman {
 		y:        y,
 		startX:   x,
 		startY:   y,
-		speed:    2,
+		speed:    defaultSpeed,
 		rotation: RIGHT,
 		graphic:  baseGraphic,
 	}

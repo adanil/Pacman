@@ -7,6 +7,8 @@ import (
 	"pacman/internal/level"
 )
 
+const maxThreshold = 100
+
 type MixedEnemyController struct {
 	level            *level.Level
 	randomController RandomEnemyController
@@ -19,14 +21,14 @@ func NewMixedEnemyController(level_ *level.Level, randomThreshold int) MixedEnem
 		level:            level_,
 		randomController: NewRandomEnemyController(level_),
 		spfController:    NewSPFEnemyController(level_),
-		randomThreshold:  int(math.Min(float64(randomThreshold), 100)),
+		randomThreshold:  int(math.Min(float64(randomThreshold), maxThreshold)),
 	}
 }
 
 func (m *MixedEnemyController) GetCommands() []command.Command {
 	var commands []command.Command
 	for _, enemy := range m.level.Enemies() {
-		n := rand.Intn(100)
+		n := rand.Intn(maxThreshold)
 		var c command.Command
 		if n > m.randomThreshold {
 			c = m.spfController.GetCommand(enemy)

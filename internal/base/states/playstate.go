@@ -16,6 +16,7 @@ import (
 
 const fontSize = 16
 const enemyRandomControlPercentage = 40
+const textOnMapFontSize = 8
 
 var (
 	frameNumber        int
@@ -50,7 +51,7 @@ func (p *PlayState) Update() error {
 		com.Execute()
 	}
 	ok := gameLevel.UpdateAll()
-	if ok == false {
+	if !ok {
 		p.cancel()
 		p.g.SetState(NewGameOverState(p.g, gameLevel.Score()))
 	}
@@ -87,11 +88,13 @@ func (p *PlayState) drawEntityAtCenter(screen, entityImage *ebiten.Image, x int,
 	screen.DrawImage(entityImage, op)
 }
 
+//nolint:gomnd
 func (p *PlayState) drawTitle(screen *ebiten.Image) {
 	x := (base.GameScreenWidth - len(base.Title)*fontSize) / 2
 	text.Draw(screen, base.Title, p.font, x, 25, base.PacmanColor)
 }
 
+//nolint:gomnd
 func (p *PlayState) drawScore(screen *ebiten.Image) {
 	text.Draw(screen, "score: "+strconv.Itoa(gameLevel.Score()), p.font, 35, base.GameScreenHeight-14, base.PacmanColor)
 }
@@ -101,7 +104,9 @@ func (p *PlayState) drawMap(screen *ebiten.Image) {
 	screen.DrawImage(base.Images["map"], op)
 }
 
+//nolint:gomnd
 func (p *PlayState) drawEnemies(screen *ebiten.Image) {
+	const ghostStatesNumber = 2
 	state := frameNumber / (base.FrameModulo / 2)
 	for _, enemy := range gameLevel.Enemies() {
 		op := &ebiten.DrawImageOptions{}
@@ -109,7 +114,7 @@ func (p *PlayState) drawEnemies(screen *ebiten.Image) {
 		op.GeoM.Translate(float64(px)+5, float64(py)+5)
 		var enemyImage *ebiten.Image
 		if enemy.NightMode() {
-			state %= 2
+			state %= ghostStatesNumber
 			enemyImage = enemy.GetGraphic().SubImage(image.Rect(6+40*(state), 0, 6+40*(state)+30, 38)).(*ebiten.Image)
 		} else {
 			enemyImage = enemy.GetGraphic().SubImage(image.Rect(6+40*(enemy.GetDirection()*2+state), 0, 6+40*(enemy.GetDirection()*2+state)+30, 38)).(*ebiten.Image)
@@ -118,6 +123,7 @@ func (p *PlayState) drawEnemies(screen *ebiten.Image) {
 	}
 }
 
+//nolint:gomnd
 func (p *PlayState) drawPacman(screen *ebiten.Image) {
 	state := frameNumber / (base.FrameModulo / 3)
 	pacman := gameLevel.Player()
@@ -134,8 +140,9 @@ func (p *PlayState) drawPacman(screen *ebiten.Image) {
 	screen.DrawImage(pacmanImage, op)
 }
 
+//nolint:gomnd
 func (p *PlayState) drawMapText(screen *ebiten.Image) {
-	textFont, _ := utility.GetFont(base.PacmanFont, 8, base.DefaultDPI)
+	textFont, _ := utility.GetFont(base.PacmanFont, textOnMapFontSize, base.DefaultDPI)
 	for _, screenText := range gameLevel.Texts() {
 		if screenText.ExpiredTime().Before(time.Now()) {
 			continue

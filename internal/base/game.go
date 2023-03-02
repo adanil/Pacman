@@ -33,6 +33,7 @@ func init() {
 	if err := initImages(); err != nil {
 		log.Fatal(err)
 	}
+	//nolint:gomnd
 	PacmanColor = color.RGBA{R: 230, G: 245, B: 39, A: 255}
 }
 
@@ -58,6 +59,9 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func initFont() error {
 	fontReader, err := os.ReadFile("fonts/quinquefive/QuinqueFive.ttf")
+	if err != nil {
+		log.Fatal(err)
+	}
 	PacmanFont, err = opentype.Parse(fontReader)
 	if err != nil {
 		log.Fatal(err)

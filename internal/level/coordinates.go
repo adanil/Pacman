@@ -1,5 +1,7 @@
 package level
 
+import "pacman/internal/base"
+
 var enemiesSpawnCoords = []Coordinates{{9, 9}, {10, 9}, {11, 9}, {12, 9}, {10, 8}, {11, 8}}
 
 type Coordinates struct {
@@ -17,4 +19,8 @@ func isEnemySpawn(c Coordinates) bool {
 		}
 	}
 	return false
+}
+
+func (c Coordinates) ToPixels() (int, int) {
+	return c.X * base.TileSize, c.Y * base.TileSize
 }

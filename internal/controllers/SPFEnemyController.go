@@ -54,13 +54,14 @@ func (e *SPFEnemyController) GetCommand(enemy *entities.Enemy) command.Command {
 	}
 	nextCoords := route[e.routesIndex[*enemy]]
 	var direction int
-	if nextCoords.X-x == 1 {
+	switch {
+	case nextCoords.X-x == 1:
 		direction = entities.RIGHT
-	} else if nextCoords.X-x == -1 {
+	case nextCoords.X-x == -1:
 		direction = entities.LEFT
-	} else if nextCoords.Y-y == 1 {
+	case nextCoords.Y-y == 1:
 		direction = entities.DOWN
-	} else {
+	case nextCoords.Y-y == -1:
 		direction = entities.UP
 	}
 	if direction == entities.OppositeDirection[enemy.GetDirection()] {

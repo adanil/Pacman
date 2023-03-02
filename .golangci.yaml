@@ -1,0 +1,42 @@
+run:
+  issues-exit-code: 0
+  timeout: 10m
+  skip-dirs:
+    - ./vendor
+linters:
+  # Disable all linters.
+  # Default: false
+  disable-all: true
+  # Enable specific linter
+  # https://golangci-lint.run/usage/linters/#enabled-by-default
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - bodyclose
+    - dupl
+    - errorlint
+    #- gci
+    - goconst
+    - gocritic
+    - gofmt
+#    - goimports
+    - gomnd
+    - goprintffuncname
+#    - gosec
+    - loggercheck
+    - noctx
+    - prealloc
+    - unconvert
+    - usestdlibvars
+
+  # Run only fast linters from enabled linters set (first run won't be fast)
+  # Default: false
+  fast: false
+# issues:
+#   new: true
+#   new-from-rev: 84ccd2ca8fadce2d4837dc6a08781436753a83f3

@@ -1,3 +1,4 @@
+//nolint:dupl
 package states
 
 import (
@@ -31,6 +32,7 @@ func (g GameOverState) Update() error {
 	return nil
 }
 
+//nolint:gomnd
 func (g GameOverState) Draw(screen *ebiten.Image) {
 	texts := []string{"SCORE:" + strconv.Itoa(g.score), "GAME OVER"}
 	for ind, t := range texts {

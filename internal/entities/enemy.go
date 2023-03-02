@@ -27,7 +27,7 @@ func CreateEnemy(x, y int, baseGraphic *ebiten.Image) Enemy {
 		y:                    y,
 		startX:               x,
 		startY:               y,
-		speed:                2,
+		speed:                defaultSpeed,
 		rotation:             UP,
 		graphic:              baseGraphic,
 		baseGraphic:          baseGraphic,
@@ -118,7 +118,7 @@ func (e *Enemy) NightMode() bool {
 func (e *Enemy) SetNightMode(nightMode bool) {
 	if nightMode {
 		e.SetGraphic(e.ghostGraphic)
-		e.SetNightModeExpiredTime(time.Now().Add(5 * time.Second))
+		e.SetNightModeExpiredTime(time.Now().Add(ghostModeDuration * time.Second))
 	} else {
 		e.SetGraphic(e.baseGraphic)
 	}

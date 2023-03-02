@@ -1,3 +1,4 @@
+//nolint:dupl
 package states
 
 import (
@@ -31,6 +32,7 @@ func (w WinState) Update() error {
 	return nil
 }
 
+//nolint:gomnd
 func (w WinState) Draw(screen *ebiten.Image) {
 	texts := []string{"SCORE:" + strconv.Itoa(w.score), "YOU WIN!"}
 	for ind, t := range texts {

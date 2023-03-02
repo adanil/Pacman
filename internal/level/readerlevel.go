@@ -19,7 +19,7 @@ func (l *ReadLevel) CreateLevel(width, height, tileSize int) Level {
 		level.levelTiles[x] = make([]int, height)
 	}
 
-	file, _ := os.OpenFile(l.Filepath, os.O_RDONLY, 0666)
+	file, _ := os.OpenFile(l.Filepath, os.O_RDONLY, os.ModePerm)
 	defer file.Close()
 	fileScanner := bufio.NewScanner(file)
 	fileScanner.Split(bufio.ScanLines)
@@ -27,8 +27,7 @@ func (l *ReadLevel) CreateLevel(width, height, tileSize int) Level {
 	for fileScanner.Scan() {
 		line := fileScanner.Text()
 		for index, c := range line {
-			switch c {
-			case '#':
+			if c == '#' {
 				level.levelTiles[index][h] = Wall
 			}
 		}

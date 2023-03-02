@@ -35,26 +35,26 @@ func (k *KeyboardHandler) HandlePressedButtons(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		default:
-			if inpututil.KeyPressDuration(ebiten.KeyArrowDown) > 0 {
+			switch {
+			case inpututil.KeyPressDuration(ebiten.KeyArrowDown) > 0:
 				k.pressedRotationButton = entities.DOWN
-			} else if inpututil.KeyPressDuration(ebiten.KeyArrowUp) > 0 {
+			case inpututil.KeyPressDuration(ebiten.KeyArrowUp) > 0:
 				k.pressedRotationButton = entities.UP
-			} else if inpututil.KeyPressDuration(ebiten.KeyArrowRight) > 0 {
+			case inpututil.KeyPressDuration(ebiten.KeyArrowRight) > 0:
 				k.pressedRotationButton = entities.RIGHT
-			} else if inpututil.KeyPressDuration(ebiten.KeyArrowLeft) > 0 {
+			case inpututil.KeyPressDuration(ebiten.KeyArrowLeft) > 0:
 				k.pressedRotationButton = entities.LEFT
-			} else if inpututil.KeyPressDuration(ebiten.KeyS) > 0 {
+			case inpututil.KeyPressDuration(ebiten.KeyS) > 0:
 				k.pressedRotationButton = entities.DOWN
-			} else if inpututil.KeyPressDuration(ebiten.KeyW) > 0 {
+			case inpututil.KeyPressDuration(ebiten.KeyW) > 0:
 				k.pressedRotationButton = entities.UP
-			} else if inpututil.KeyPressDuration(ebiten.KeyD) > 0 {
+			case inpututil.KeyPressDuration(ebiten.KeyD) > 0:
 				k.pressedRotationButton = entities.RIGHT
-			} else if inpututil.KeyPressDuration(ebiten.KeyA) > 0 {
+			case inpututil.KeyPressDuration(ebiten.KeyA) > 0:
 				k.pressedRotationButton = entities.LEFT
-			} else {
+			default:
 				k.pressedRotationButton = -1
 			}
 		}
 	}
-
 }

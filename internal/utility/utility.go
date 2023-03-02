@@ -18,6 +18,7 @@ func GetFont(baseFont *opentype.Font, size, dpi float64) (font.Face, error) {
 
 func ReadImage(imagePath string) (*ebiten.Image, error) {
 	f, err := os.Open(imagePath)
+	//nolint:staticcheck
 	defer f.Close()
 	if err != nil {
 		return nil, err

@@ -29,6 +29,8 @@ func (s StartState) Update() error {
 }
 
 // TODO Add background
+//
+//nolint:gomnd
 func (s StartState) Draw(screen *ebiten.Image) {
 	menuFont, _ := utility.GetFont(base.PacmanFont, menuFontSize, base.DefaultDPI)
 	titleText := "PACMAN"

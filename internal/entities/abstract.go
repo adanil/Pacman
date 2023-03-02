@@ -10,6 +10,8 @@ const (
 	LEFT
 	RIGHT
 )
+const defaultSpeed = 2
+const ghostModeDuration = 5
 
 var OppositeDirection = map[int]int{
 	UP:    DOWN,

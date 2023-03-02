@@ -17,7 +17,10 @@ const (
 	Strawberry
 	NightModeBooster
 )
-const textAppearTime = 3
+
+const textDuration = 3
+const strawberryMax = 5
+const strawberryMin = 2
 
 type Level struct {
 	levelTiles [][]int
@@ -38,10 +41,18 @@ func NewLevel(width, height, tileSize int) Level {
 
 func (l *Level) CreateEntities() {
 	l.player = l.createRandomPlayer(base.Images["pacman"])
-	blueEnemy := entities.CreateEnemy(12*l.tileSize, 9*l.tileSize, base.Images["blueEnemy"])
-	pinkEnemy := entities.CreateEnemy(11*l.tileSize, 9*l.tileSize, base.Images["pinkEnemy"])
-	redEnemy := entities.CreateEnemy(10*l.tileSize, 9*l.tileSize, base.Images["redEnemy"])
-	yellowEnemy := entities.CreateEnemy(9*l.tileSize, 9*l.tileSize, base.Images["yellowEnemy"])
+
+	x, y := enemiesSpawnCoords[0].ToPixels()
+	blueEnemy := entities.CreateEnemy(x, y, base.Images["blueEnemy"])
+
+	x, y = enemiesSpawnCoords[1].ToPixels()
+	pinkEnemy := entities.CreateEnemy(x, y, base.Images["pinkEnemy"])
+
+	x, y = enemiesSpawnCoords[2].ToPixels()
+	redEnemy := entities.CreateEnemy(x, y, base.Images["redEnemy"])
+
+	x, y = enemiesSpawnCoords[3].ToPixels()
+	yellowEnemy := entities.CreateEnemy(x, y, base.Images["yellowEnemy"])
 
 	l.enemies = append(l.enemies, &blueEnemy, &pinkEnemy, &redEnemy, &yellowEnemy)
 
@@ -53,7 +64,7 @@ func (l *Level) CreateEntities() {
 func (l *Level) UpdateAll() bool {
 	l.UpdatePacman(&l.player)
 	for _, enemy := range l.enemies {
-		if l.UpdateEnemy(enemy) == false {
+		if !l.UpdateEnemy(enemy) {
 			return false
 		}
 	}
@@ -64,7 +75,7 @@ func (l *Level) UpdatePacman(player *entities.Pacman) {
 	rotation := player.GetDirection()
 	nextX, nextY := player.CalculateNextPosition(rotation, base.GameScreenWidth, base.GameScreenHeight)
 
-	//If a wall is encountered the coordinates do not change
+	// If a wall is encountered the coordinates do not change
 	x, y := player.GetCoords()
 	xTileTmp := x / l.tileSize
 	yTileTmp := y / l.tileSize
@@ -83,7 +94,7 @@ func (l *Level) UpdatePacman(player *entities.Pacman) {
 		l.foodEaten++
 	case Strawberry:
 		l.score += 200
-		l.texts = append(l.texts, NewScreenText(xTile, yTile, "+200", time.Now().Add(textAppearTime*time.Second)))
+		l.texts = append(l.texts, NewScreenText(xTile, yTile, "+200", time.Now().Add(textDuration*time.Second)))
 	case NightModeBooster:
 		for _, enemy := range l.enemies {
 			enemy.SetNightMode(true)
@@ -101,7 +112,7 @@ func (l *Level) UpdateEnemy(enemy *entities.Enemy) bool {
 	rotation := enemy.GetDirection()
 	nextX, nextY := enemy.CalculateNextPosition(rotation, base.GameScreenWidth, base.GameScreenHeight)
 
-	//If a wall is encountered the coordinates do not change
+	// If a wall is encountered the coordinates do not change
 	if l.CheckWallCollision(nextX, nextY) {
 		enemy.SetStopped(true)
 	} else {
@@ -192,7 +203,7 @@ func (l *Level) createFood() {
 
 func (l *Level) createStrawberry() {
 	rand.Seed(time.Now().UnixNano())
-	countStrawberry := rand.Intn(3) + 2
+	countStrawberry := rand.Intn(strawberryMax-strawberryMin) + strawberryMin
 	for countStrawberry > 0 {
 		var x, y int
 		for {
@@ -208,7 +219,9 @@ func (l *Level) createStrawberry() {
 }
 func (l *Level) createNightModeBoosters() {
 	rand.Seed(time.Now().UnixNano())
-	countBoosters := rand.Intn(8) + 2
+	const boostersMax = 8
+	const boostersMin = 2
+	countBoosters := rand.Intn(boostersMax-boostersMin) + boostersMin
 	for countBoosters > 0 {
 		var x, y int
 		for {
@@ -228,12 +241,13 @@ func (l *Level) enemyKilled(enemy *entities.Enemy) {
 	xTile := x / l.tileSize
 	yTile := y / l.tileSize
 	l.score += 400
-	l.texts = append(l.texts, NewScreenText(xTile, yTile, "+400", time.Now().Add(textAppearTime*time.Second)))
-	//Respawn enemy
+	l.texts = append(l.texts, NewScreenText(xTile, yTile, "+400", time.Now().Add(textDuration*time.Second)))
+	// Respawn enemy
 	enemy.SetCoords(enemy.GetStartCoords())
 	enemy.SetNightMode(false)
 }
 
+//nolint:gomnd
 func (l *Level) checkHit(x, y int) bool {
 	pacmanX, pacmanY := l.player.GetCoords()
 	pacmanCenterX := (pacmanX + l.tileSize) / 2
