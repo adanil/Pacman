@@ -9,10 +9,6 @@ import (
 	"pacman/internal/base/states"
 )
 
-/* TODO
-*	Add README
- */
-
 func main() {
 	ebiten.SetWindowSize(bs.GameScreenWidth, bs.GameScreenHeight)
 	ebiten.SetWindowTitle("Pacman")
