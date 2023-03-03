@@ -10,7 +10,7 @@ Pacman is a great game for all ages, and is a great way to spend some time playi
 
 This implementation of Pacman was created using the [Ebitengine(v2)](https://github.com/hajimehoshi/ebiten), a 2D game library for Golang.
 
-![](https://im3.ezgif.com/tmp/ezgif-3-731f2c294d.gif)
+![](images/pacman.gif)
 
 ## Project structure
 Pacman consists of 7 general packages:
