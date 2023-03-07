@@ -117,7 +117,7 @@ func (p *PlayState) drawEnemies(screen *ebiten.Image) {
 			state %= ghostStatesNumber
 			enemyImage = enemy.GetGraphic().SubImage(image.Rect(6+40*(state), 0, 6+40*(state)+30, 38)).(*ebiten.Image)
 		} else {
-			enemyImage = enemy.GetGraphic().SubImage(image.Rect(6+40*(enemy.GetDirection()*2+state), 0, 6+40*(enemy.GetDirection()*2+state)+30, 38)).(*ebiten.Image)
+			enemyImage = enemy.GetGraphic().SubImage(image.Rect(6+40*(int(enemy.GetDirection())*2+state), 0, 6+40*(int(enemy.GetDirection())*2+state)+30, 38)).(*ebiten.Image)
 		}
 		screen.DrawImage(enemyImage, op)
 	}
@@ -135,7 +135,7 @@ func (p *PlayState) drawPacman(screen *ebiten.Image) {
 		pacmanImage = pacman.GetGraphic().SubImage(image.Rect(296, 0, 324, 30)).(*ebiten.Image)
 	} else {
 		state = (state + 1) % 2
-		pacmanImage = pacman.GetGraphic().SubImage(image.Rect(38*(pacman.GetDirection()*2+state), 0, 38*(pacman.GetDirection()*2+state)+30, 30)).(*ebiten.Image)
+		pacmanImage = pacman.GetGraphic().SubImage(image.Rect(38*(int(pacman.GetDirection())*2+state), 0, 38*(int(pacman.GetDirection())*2+state)+30, 30)).(*ebiten.Image)
 	}
 	screen.DrawImage(pacmanImage, op)
 }

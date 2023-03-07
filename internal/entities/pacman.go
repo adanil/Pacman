@@ -9,7 +9,7 @@ type Pacman struct {
 	x, y           int
 	startX, startY int
 	speed          int
-	rotation       int
+	rotation       Direction
 	graphic        *ebiten.Image
 }
 
@@ -42,12 +42,12 @@ func (p *Pacman) GetSpeed() int {
 	return p.speed
 }
 
-func (p *Pacman) Move(direction, widthModulo, heightModulo int) {
+func (p *Pacman) Move(direction Direction, widthModulo, heightModulo int) {
 	newX, newY := p.CalculateNextPosition(direction, widthModulo, heightModulo)
 	p.SetCoords(newX, newY)
 }
 
-func (p *Pacman) CalculateNextPosition(direction, widthModulo, heightModulo int) (int, int) {
+func (p *Pacman) CalculateNextPosition(direction Direction, widthModulo, heightModulo int) (int, int) {
 	x := p.x
 	y := p.y
 	switch direction {
@@ -67,11 +67,11 @@ func (p *Pacman) CalculateNextPosition(direction, widthModulo, heightModulo int)
 	return x, y
 }
 
-func (p *Pacman) ChangeDirection(direction int) {
+func (p *Pacman) ChangeDirection(direction Direction) {
 	p.rotation = direction
 }
 
-func (p *Pacman) GetDirection() int {
+func (p *Pacman) GetDirection() Direction {
 	return p.rotation
 }
 

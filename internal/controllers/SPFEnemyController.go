@@ -53,7 +53,7 @@ func (e *SPFEnemyController) GetCommand(enemy *entities.Enemy) command.Command {
 		e.routesIndex[*enemy] = 1
 	}
 	nextCoords := route[e.routesIndex[*enemy]]
-	var direction int
+	var direction entities.Direction
 	switch {
 	case nextCoords.X-x == 1:
 		direction = entities.RIGHT

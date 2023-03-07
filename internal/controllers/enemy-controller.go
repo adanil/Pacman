@@ -31,8 +31,8 @@ func (e *RandomEnemyController) GetCommand(enemy *entities.Enemy) command.Comman
 		return nil
 	}
 	const directionsNumber = 4
-	if n := rand.Intn(directionsNumber + 1); n != 4 && (n != entities.OppositeDirection[enemy.GetDirection()] || enemy.GetStopped()) {
-		cdCommand := command.NewChangeDirectionCommand(n, enemy, e.level)
+	if n := rand.Intn(directionsNumber + 1); n != 4 && (entities.Direction(n) != entities.OppositeDirection[enemy.GetDirection()] || enemy.GetStopped()) {
+		cdCommand := command.NewChangeDirectionCommand(entities.Direction(n), enemy, e.level)
 		return &cdCommand
 	}
 	return nil

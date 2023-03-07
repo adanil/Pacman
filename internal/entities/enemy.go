@@ -11,7 +11,7 @@ type Enemy struct {
 	x, y                 int
 	startX, startY       int
 	speed                int
-	rotation             int
+	rotation             Direction
 	graphic              *ebiten.Image
 	baseGraphic          *ebiten.Image
 	ghostGraphic         *ebiten.Image
@@ -54,12 +54,12 @@ func (e *Enemy) GetSpeed() int {
 	return e.speed
 }
 
-func (e *Enemy) Move(direction, widthModulo, heightModulo int) {
+func (e *Enemy) Move(direction Direction, widthModulo, heightModulo int) {
 	newX, newY := e.CalculateNextPosition(direction, widthModulo, heightModulo)
 	e.SetCoords(newX, newY)
 }
 
-func (e *Enemy) CalculateNextPosition(direction, widthModulo, heightModulo int) (int, int) {
+func (e *Enemy) CalculateNextPosition(direction Direction, widthModulo, heightModulo int) (int, int) {
 	x := e.x
 	y := e.y
 	switch direction {
@@ -79,11 +79,11 @@ func (e *Enemy) CalculateNextPosition(direction, widthModulo, heightModulo int) 
 	return x, y
 }
 
-func (e *Enemy) ChangeDirection(direction int) {
+func (e *Enemy) ChangeDirection(direction Direction) {
 	e.rotation = direction
 }
 
-func (e *Enemy) GetDirection() int {
+func (e *Enemy) GetDirection() Direction {
 	return e.rotation
 }
 

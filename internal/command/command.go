@@ -11,12 +11,12 @@ type Command interface {
 }
 
 type ChangeDirectionCommand struct {
-	direction int
+	direction entities.Direction
 	target    entities.Movable
 	level     *level.Level
 }
 
-func NewChangeDirectionCommand(direction_ int, target_ entities.Movable, level_ *level.Level) ChangeDirectionCommand {
+func NewChangeDirectionCommand(direction_ entities.Direction, target_ entities.Movable, level_ *level.Level) ChangeDirectionCommand {
 	return ChangeDirectionCommand{direction: direction_, target: target_, level: level_}
 }
 

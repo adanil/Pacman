@@ -4,8 +4,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type Direction int
+
 const (
-	UP = iota
+	UP Direction = iota
 	DOWN
 	LEFT
 	RIGHT
@@ -13,7 +15,7 @@ const (
 const defaultSpeed = 2
 const ghostModeDuration = 5
 
-var OppositeDirection = map[int]int{
+var OppositeDirection = map[Direction]Direction{
 	UP:    DOWN,
 	DOWN:  UP,
 	LEFT:  RIGHT,
@@ -21,10 +23,10 @@ var OppositeDirection = map[int]int{
 }
 
 type Movable interface {
-	Move(direction, widthModulo, heightModulo int)
-	CalculateNextPosition(direction, widthModulo, heightModulo int) (int, int)
-	ChangeDirection(direction int)
-	GetDirection() int
+	Move(direction Direction, widthModulo, heightModulo int)
+	CalculateNextPosition(direction Direction, widthModulo, heightModulo int) (int, int)
+	ChangeDirection(direction Direction)
+	GetDirection() Direction
 	SetCoords(x, y int)
 	GetCoords() (int, int)
 	GetSpeed() int

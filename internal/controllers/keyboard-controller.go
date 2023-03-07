@@ -22,7 +22,7 @@ func (k *KeyboardHandler) GetKeyboardCommands() []command.Command {
 	var commands []command.Command
 
 	if k.pressedRotationButton != -1 {
-		cdCommand := command.NewChangeDirectionCommand(k.pressedRotationButton, k.level.Player(), k.level)
+		cdCommand := command.NewChangeDirectionCommand(entities.Direction(k.pressedRotationButton), k.level.Player(), k.level)
 		commands = append(commands, &cdCommand)
 	}
 
@@ -37,21 +37,21 @@ func (k *KeyboardHandler) HandlePressedButtons(ctx context.Context) {
 		default:
 			switch {
 			case inpututil.KeyPressDuration(ebiten.KeyArrowDown) > 0:
-				k.pressedRotationButton = entities.DOWN
+				k.pressedRotationButton = int(entities.DOWN)
 			case inpututil.KeyPressDuration(ebiten.KeyArrowUp) > 0:
-				k.pressedRotationButton = entities.UP
+				k.pressedRotationButton = int(entities.UP)
 			case inpututil.KeyPressDuration(ebiten.KeyArrowRight) > 0:
-				k.pressedRotationButton = entities.RIGHT
+				k.pressedRotationButton = int(entities.RIGHT)
 			case inpututil.KeyPressDuration(ebiten.KeyArrowLeft) > 0:
-				k.pressedRotationButton = entities.LEFT
+				k.pressedRotationButton = int(entities.LEFT)
 			case inpututil.KeyPressDuration(ebiten.KeyS) > 0:
-				k.pressedRotationButton = entities.DOWN
+				k.pressedRotationButton = int(entities.DOWN)
 			case inpututil.KeyPressDuration(ebiten.KeyW) > 0:
-				k.pressedRotationButton = entities.UP
+				k.pressedRotationButton = int(entities.UP)
 			case inpututil.KeyPressDuration(ebiten.KeyD) > 0:
-				k.pressedRotationButton = entities.RIGHT
+				k.pressedRotationButton = int(entities.RIGHT)
 			case inpututil.KeyPressDuration(ebiten.KeyA) > 0:
-				k.pressedRotationButton = entities.LEFT
+				k.pressedRotationButton = int(entities.LEFT)
 			default:
 				k.pressedRotationButton = -1
 			}
