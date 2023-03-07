@@ -9,8 +9,10 @@ import (
 	"time"
 )
 
+type TileObject int
+
 const (
-	Free = iota
+	Free TileObject = iota
 	Wall
 	Player
 	Food
@@ -23,7 +25,7 @@ const strawberryMax = 5
 const strawberryMin = 2
 
 type Level struct {
-	levelTiles [][]int
+	levelTiles [][]TileObject
 	tileSize   int
 	width      int
 	height     int
@@ -36,7 +38,7 @@ type Level struct {
 }
 
 func NewLevel(width, height, tileSize int) Level {
-	return Level{levelTiles: make([][]int, width), width: width, height: height, tileSize: tileSize}
+	return Level{levelTiles: make([][]TileObject, width), width: width, height: height, tileSize: tileSize}
 }
 
 func (l *Level) CreateEntities() {
@@ -146,7 +148,7 @@ func (l *Level) IsAllFoodEaten() bool {
 	return l.foodCount == l.foodEaten
 }
 
-func (l *Level) GetEntityByCoordinates(c Coordinates) int {
+func (l *Level) GetEntityByCoordinates(c Coordinates) TileObject {
 	return l.levelTiles[c.X][c.Y]
 }
 

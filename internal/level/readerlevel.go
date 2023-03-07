@@ -16,7 +16,7 @@ type ReadLevel struct {
 func (l *ReadLevel) CreateLevel(width, height, tileSize int) Level {
 	level := NewLevel(width, height, tileSize)
 	for x := 0; x < width; x++ {
-		level.levelTiles[x] = make([]int, height)
+		level.levelTiles[x] = make([]TileObject, height)
 	}
 
 	file, _ := os.OpenFile(l.Filepath, os.O_RDONLY, os.ModePerm)
